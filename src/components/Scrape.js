@@ -1,3 +1,4 @@
+// Scrape.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -14,56 +15,54 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import BuildIcon from "@mui/icons-material/Build";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 
-const BuildIndex = () => {
-  const [indexName, setIndexName] = useState(() => {
-    const savedIndexName = localStorage.getItem("indexName");
-    return savedIndexName || "";
+const Scrape = () => {
+  // Initialize state with data from localStorage if it exists
+  const [url, setUrl] = useState(() => {
+    const savedUrl = localStorage.getItem('scrapeUrl');
+    return savedUrl || '';
   });
-
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  
   const [data, setData] = useState(() => {
-    const savedData = localStorage.getItem("indexData");
+    const savedData = localStorage.getItem('scrapeData');
     try {
       return savedData ? JSON.parse(savedData) : {};
     } catch (e) {
-      console.error("Error parsing stored data:", e);
+      console.error('Error parsing stored data:', e);
       return {};
     }
   });
 
-  // Save to localStorage whenever data or indexName changes
+  // Save to localStorage whenever data or url changes
   useEffect(() => {
-    localStorage.setItem("indexName", indexName);
-  }, [indexName]);
+    localStorage.setItem('scrapeUrl', url);
+  }, [url]);
 
   useEffect(() => {
-    localStorage.setItem("indexData", JSON.stringify(data));
+    localStorage.setItem('scrapeData', JSON.stringify(data));
   }, [data]);
 
-  const handleBuildIndex = async () => {
-    if (!indexName.trim()) return;
+  const handleScraping = async () => {
+    if (!url.trim()) return;
 
     setLoading(true);
     setError(null);
 
     try {
       const response = await axios.get(
-        `http://localhost:5009/api/build_text_index/${encodeURIComponent(
-          indexName
-        )}`
+        `http://localhost:5009/api/scrape_web?url=${encodeURIComponent(url)}`
       );
       setData(response.data);
-      console.log(response.data);
       // Save to localStorage immediately after successful response
-      localStorage.setItem("indexData", JSON.stringify(response.data));
+      localStorage.setItem('scrapeData', JSON.stringify(response.data));
     } catch (error) {
       setError(error.message);
       // Optionally save error state to localStorage
-      localStorage.setItem("indexError", error.message);
+      localStorage.setItem('scrapeError', error.message);
     } finally {
       setLoading(false);
     }
@@ -71,31 +70,30 @@ const BuildIndex = () => {
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
-      handleBuildIndex();
+      handleScraping();
     }
   };
 
   const handleClearData = () => {
     setData({});
-    setIndexName("");
+    setUrl('');
     setError(null);
     // Clear localStorage
-    localStorage.removeItem("indexName");
-    localStorage.removeItem("indexData");
-    localStorage.removeItem("indexError");
+    localStorage.removeItem('scrapeUrl');
+    localStorage.removeItem('scrapeData');
+    localStorage.removeItem('scrapeError');
   };
 
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", margin: 2, padding: 2 }}>
-      {/* Header and Clear Button */}
       <Stack
         direction="row"
         justifyContent="space-between"
         alignItems="center"
         sx={{ mb: 3 }}
       >
-        <Typography variant="h6">Build Index</Typography>
-        {(Object.keys(data).length > 0 || indexName) && (
+        <Typography variant="h6">Scrape Content</Typography>
+        {Object.keys(data).length > 0 && (
           <Button
             variant="outlined"
             color="secondary"
@@ -107,7 +105,6 @@ const BuildIndex = () => {
         )}
       </Stack>
 
-      {/* Input Section */}
       <Stack
         direction="row"
         spacing={2}
@@ -116,41 +113,39 @@ const BuildIndex = () => {
       >
         <TextField
           fullWidth
-          label="Enter index name"
+          label="Enter URL to scrape"
           variant="outlined"
-          value={indexName}
-          onChange={(e) => setIndexName(e.target.value)}
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
           onKeyPress={handleKeyPress}
-          sx={{ maxWidth: 500 }}
+          sx={{ maxWidth: 1100 }}
         />
         <Button
           variant="contained"
-          onClick={handleBuildIndex}
-          disabled={loading || !indexName.trim()}
-          startIcon={<BuildIcon />}
+          onClick={handleScraping}
+          disabled={loading || !url.trim()}
+          startIcon={<UploadFileIcon />}
         >
-          Build Index
+          Start Scraping
         </Button>
       </Stack>
 
-      {/* Loading State */}
       {loading && (
-        <Box sx={{ padding: 2, textAlign: "center" }}>Building index...</Box>
+        <Box sx={{ padding: 2, textAlign: "center" }}>Loading...</Box>
       )}
 
-      {/* Error State */}
       {error && (
         <Box sx={{ padding: 2, color: "error.main" }}>Error: {error}</Box>
       )}
 
-      {/* Results Table */}
       {!loading && !error && Object.keys(data).length > 0 && (
         <TableContainer sx={{ maxHeight: 900 }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Index Name</TableCell>
-                <TableCell>Status</TableCell>
+                <TableCell>Task ID</TableCell>
+                <TableCell>Scraping Status</TableCell>
+                <TableCell>URL Scraped</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -158,21 +153,22 @@ const BuildIndex = () => {
                 hover
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
-                <TableCell>{indexName}</TableCell>
+                <TableCell>{data.task_id}</TableCell>
+                <TableCell sx={{ maxWidth: 1100 }}>
+                  <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
+                    {data.message}
+                  </Box>
+                </TableCell>
                 <TableCell>
                   <Box
                     sx={{
-                      bgcolor:
-                        data.status === "completed"
-                          ? "success.main"
-                          : "primary.main",
-                      color: "white",
-                      borderRadius: 1,
-                      padding: "4px 8px",
-                      display: "inline-block",
+                      maxWidth: 500,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {data.message || "Processing"}
+                    {url}
                   </Box>
                 </TableCell>
               </TableRow>
@@ -181,14 +177,13 @@ const BuildIndex = () => {
         </TableContainer>
       )}
 
-      {/* No Results State */}
-      {!loading && !error && Object.keys(data).length === 0 && indexName && (
+      {!loading && !error && Object.keys(data).length === 0 && url && (
         <Box sx={{ padding: 2, textAlign: "center", color: "text.secondary" }}>
-          No index has been built yet.
+          No content found for this URL.
         </Box>
       )}
     </Paper>
   );
 };
 
-export default BuildIndex;
+export default Scrape;
