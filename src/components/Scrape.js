@@ -184,7 +184,7 @@ const Scrape = () => {
         </Box>
       )}
 
-      <LogViewer />
+      <LogViewer taskId={url}/>
     </Paper>
   );
 };

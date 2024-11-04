@@ -188,7 +188,7 @@ const BuildIndex = () => {
           No index has been built yet.
         </Box>
       )}
-      <LogViewer />
+      <LogViewer taskId={indexName}/>
     </Paper>
   );
 };
