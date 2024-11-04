@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import BuildIcon from "@mui/icons-material/Build";
 import LogViewer from "./LogViewer";
+import { config } from '../config/config';
 
 const BuildIndex = () => {
   const [indexName, setIndexName] = useState(() => {
@@ -53,7 +54,7 @@ const BuildIndex = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:5009/api/build_text_index/${encodeURIComponent(
+        `${config.SEARCH_ENGINE_API_URL}/api/build_text_index/${encodeURIComponent(
           indexName
         )}`
       );

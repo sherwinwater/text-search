@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { Paper, Box, Typography, LinearProgress } from "@mui/material";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import { config } from '../config/config';
 
 const LogViewer = ({ taskId }) => {
   const [displayedLogs, setDisplayedLogs] = useState([]);
@@ -23,7 +24,7 @@ const LogViewer = ({ taskId }) => {
   }, [queuedLogs, displayedLogs]);
 
   useEffect(() => {
-    const socket = io('http://127.0.0.1:5009', {
+    const socket = io(config.SEARCH_ENGINE_API_URL, {
       transports: ['polling', 'websocket'],
       upgrade: true,
       rememberUpgrade: true,

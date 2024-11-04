@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import LogViewer from "./LogViewer";
+import { config } from '../config/config';
 
 const Scrape = () => {
   // Initialize state with data from localStorage if it exists
@@ -55,7 +56,7 @@ const Scrape = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:5009/api/scrape_web?url=${encodeURIComponent(url)}`
+        `${config.SEARCH_ENGINE_API_URL}/api/scrape_web?url=${encodeURIComponent(url)}`
       );
       setData(response.data);
       // Save to localStorage immediately after successful response

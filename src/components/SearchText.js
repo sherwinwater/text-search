@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { config } from '../config/config';
 
 const SearchText = () => {
   // Initialize state with data from localStorage
@@ -62,7 +63,7 @@ const SearchText = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:5009/api/search_text/${encodeURIComponent(
+        `${config.SEARCH_ENGINE_API_URL}/api/search_text/${encodeURIComponent(
           searchIndexId
         )}?query=${encodeURIComponent(searchQuery)}`
       );
