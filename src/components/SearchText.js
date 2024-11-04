@@ -170,8 +170,7 @@ const SearchText = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>Score</TableCell>
-                  <TableCell>Document ID</TableCell>
-                  <TableCell>Position</TableCell>
+                  <TableCell>Filename</TableCell>
                   <TableCell>Content</TableCell>
                 </TableRow>
               </TableHead>
@@ -197,8 +196,7 @@ const SearchText = () => {
                           : item.score}
                       </Box>
                     </TableCell>
-                    <TableCell>{item.document_id}</TableCell>
-                    <TableCell>{item.position}</TableCell>
+                    <TableCell>{item.filename}</TableCell>
                     <TableCell sx={{ maxWidth: 1100 }}>
                       <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
                         {item.content.slice(0, 2000)}

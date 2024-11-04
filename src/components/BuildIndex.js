@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import BuildIcon from "@mui/icons-material/Build";
+import LogViewer from "./LogViewer";
 
 const BuildIndex = () => {
   const [indexName, setIndexName] = useState(() => {
@@ -144,7 +145,7 @@ const BuildIndex = () => {
       )}
 
       {/* Results Table */}
-      {!loading && !error && Object.keys(data).length > 0 && (
+      {/* {!loading && !error && Object.keys(data).length > 0 && (
         <TableContainer sx={{ maxHeight: 900 }}>
           <Table stickyHeader>
             <TableHead>
@@ -179,7 +180,7 @@ const BuildIndex = () => {
             </TableBody>
           </Table>
         </TableContainer>
-      )}
+      )} */}
 
       {/* No Results State */}
       {!loading && !error && Object.keys(data).length === 0 && indexName && (
@@ -187,6 +188,7 @@ const BuildIndex = () => {
           No index has been built yet.
         </Box>
       )}
+      <LogViewer />
     </Paper>
   );
 };

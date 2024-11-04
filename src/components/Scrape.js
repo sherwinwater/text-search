@@ -16,6 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import LogViewer from "./LogViewer";
 
 const Scrape = () => {
   // Initialize state with data from localStorage if it exists
@@ -182,6 +183,8 @@ const Scrape = () => {
           No content found for this URL.
         </Box>
       )}
+
+      <LogViewer />
     </Paper>
   );
 };
