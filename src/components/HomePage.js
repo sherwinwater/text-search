@@ -8,7 +8,6 @@ import { Box, Paper, Tabs, Tab } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import BuildIcon from "@mui/icons-material/Build";
-import axios from "axios";
 
 const HomePage = () => {
   const [currentTab, setCurrentTab] = useState(0);

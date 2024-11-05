@@ -4,7 +4,7 @@ import { Paper, Box, Typography, LinearProgress } from "@mui/material";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import { config } from '../config/config';
 
-const LogViewer = ({ taskId }) => {
+const LogViewer = ({ taskId, onQueuedLogsChange }) => {
   const [displayedLogs, setDisplayedLogs] = useState([]);
   const [queuedLogs, setQueuedLogs] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -13,15 +13,18 @@ const LogViewer = ({ taskId }) => {
 
   useEffect(() => {
     if (queuedLogs.length > 0) {
+      // Notify parent component whenever queuedLogs changes
+      onQueuedLogsChange?.(queuedLogs);
+      
       const timer = setTimeout(() => {
         const nextLog = queuedLogs[0];
         setDisplayedLogs(prev => [...prev, nextLog]);
         setQueuedLogs(prev => prev.slice(1));
-      }, 50);
+      }, 10);
 
       return () => clearTimeout(timer);
     }
-  }, [queuedLogs, displayedLogs]);
+  }, [queuedLogs, displayedLogs, onQueuedLogsChange]);
 
   useEffect(() => {
     const socket = io(config.SEARCH_ENGINE_API_URL, {
@@ -125,7 +128,7 @@ const LogViewer = ({ taskId }) => {
 
       <Box
         sx={{
-          height: "24rem",
+          height: "18rem",
           overflow: "auto",
           bgcolor: "#f9fafb",
           p: 2,

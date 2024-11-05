@@ -15,43 +15,42 @@ import {
   Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { config } from '../config/config';
+import { config } from "../config/config";
 
 const SearchText = () => {
-  // Initialize state with data from localStorage
   const [data, setData] = useState(() => {
-    const savedData = localStorage.getItem('searchResults');
+    const savedData = localStorage.getItem("searchResults");
     try {
       return savedData ? JSON.parse(savedData) : [];
     } catch (e) {
-      console.error('Error parsing stored search results:', e);
+      console.error("Error parsing stored search results:", e);
       return [];
     }
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const [searchQuery, setSearchQuery] = useState(() => {
-    return localStorage.getItem('searchQuery') || "";
+    return localStorage.getItem("searchQuery") || "";
   });
-  
+
   const [searchIndexId, setSearchIndexId] = useState(() => {
-    return localStorage.getItem('searchIndexId') || "";
+    return localStorage.getItem("searchIndexId") || "";
   });
 
   // Save to localStorage whenever search parameters change
   useEffect(() => {
-    localStorage.setItem('searchQuery', searchQuery);
+    localStorage.setItem("searchQuery", searchQuery);
   }, [searchQuery]);
 
   useEffect(() => {
-    localStorage.setItem('searchIndexId', searchIndexId);
+    localStorage.setItem("searchIndexId", searchIndexId);
   }, [searchIndexId]);
 
   // Save search results to localStorage
   useEffect(() => {
-    localStorage.setItem('searchResults', JSON.stringify(data));
+    localStorage.setItem("searchResults", JSON.stringify(data));
   }, [data]);
 
   const handleSearch = async () => {
@@ -69,10 +68,10 @@ const SearchText = () => {
       );
       setData(response.data);
       // Save to localStorage immediately after successful response
-      localStorage.setItem('searchResults', JSON.stringify(response.data));
+      localStorage.setItem("searchResults", JSON.stringify(response.data));
     } catch (error) {
       setError(error.message);
-      localStorage.setItem('searchError', error.message);
+      localStorage.setItem("searchError", error.message);
     } finally {
       setLoading(false);
     }
@@ -86,18 +85,28 @@ const SearchText = () => {
 
   const handleClearSearch = () => {
     setData([]);
-    setSearchQuery('');
-    setSearchIndexId('');
+    setSearchQuery("");
+    setSearchIndexId("");
     setError(null);
     // Clear all search-related localStorage items
-    localStorage.removeItem('searchResults');
-    localStorage.removeItem('searchQuery');
-    localStorage.removeItem('searchIndexId');
-    localStorage.removeItem('searchError');
+    localStorage.removeItem("searchResults");
+    localStorage.removeItem("searchQuery");
+    localStorage.removeItem("searchIndexId");
+    localStorage.removeItem("searchError");
   };
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden", margin: 2, padding: 2 }}>
+    <Paper
+      sx={{
+        width: "100%",
+        overflow: "hidden",
+        margin: 2,
+        padding: 2,
+        display: "flex",
+        flexDirection: "column",
+        height: "calc(100vh - 32px)"
+      }}
+    >
       {/* Header and Clear Button */}
       <Stack
         direction="row"
@@ -166,7 +175,7 @@ const SearchText = () => {
       {/* Results Table */}
       {!loading && !error && data.length > 0 && (
         <>
-          <TableContainer sx={{ maxHeight: 900 }}>
+          <TableContainer sx={{ flexGrow: 1, maxHeight: 'none', mb: 4 }}>
             <Table stickyHeader>
               <TableHead>
                 <TableRow>

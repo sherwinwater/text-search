@@ -1,4 +1,3 @@
-// Scrape.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -17,56 +16,115 @@ import {
 } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import LogViewer from "./LogViewer";
-import { config } from '../config/config';
+import { config } from "../config/config";
+import WebpageNetwork from "./WebpageNetwork";
+
+const POLLING_INTERVAL = 5000; // 5 seconds
 
 const Scrape = () => {
-  // Initialize state with data from localStorage if it exists
   const [url, setUrl] = useState(() => {
-    const savedUrl = localStorage.getItem('scrapeUrl');
-    return savedUrl || '';
+    const savedUrl = localStorage.getItem("scrapeUrl");
+    return savedUrl || "";
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [taskId, setTaskId] = useState(null);
+  const [webpageGraph, setWebpageGraph] = useState(null);
+  const [parentQueuedLogs, setParentQueuedLogs] = useState([]);
+
+  const handleQueuedLogsChange = (logs) => {
+    setParentQueuedLogs(logs);
+  };
+
   const [data, setData] = useState(() => {
-    const savedData = localStorage.getItem('scrapeData');
+    const savedData = localStorage.getItem("scrapeData");
     try {
       return savedData ? JSON.parse(savedData) : {};
     } catch (e) {
-      console.error('Error parsing stored data:', e);
+      console.error("Error parsing stored data:", e);
       return {};
     }
   });
 
   // Save to localStorage whenever data or url changes
   useEffect(() => {
-    localStorage.setItem('scrapeUrl', url);
+    localStorage.setItem("scrapeUrl", url);
   }, [url]);
 
   useEffect(() => {
-    localStorage.setItem('scrapeData', JSON.stringify(data));
+    localStorage.setItem("scrapeData", JSON.stringify(data));
   }, [data]);
+
+  // Polling effect
+  useEffect(() => {
+    let pollInterval;
+
+    const checkStatus = async () => {
+      if (!taskId) return;
+
+      try {
+        const response = await axios.get(
+          `${config.SEARCH_ENGINE_API_URL}/api/scrape_status/${taskId}`
+        );
+
+        setData((prevData) => ({
+          ...prevData,
+          message: response.data.status,
+        }));
+
+        if (response.data.status === "completed") {
+          setWebpageGraph(response.data.webpage_graph);
+          setLoading(false);
+          clearInterval(pollInterval);
+        } else if (response.data.status === "failed") {
+          setError("Scraping process failed");
+          setLoading(false);
+          clearInterval(pollInterval);
+        }
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+        clearInterval(pollInterval);
+      }
+    };
+
+    if (loading && taskId) {
+      // Start polling
+      checkStatus(); // Initial check
+      pollInterval = setInterval(checkStatus, POLLING_INTERVAL);
+    }
+
+    // Cleanup function
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
+  }, [taskId, loading]);
 
   const handleScraping = async () => {
     if (!url.trim()) return;
 
     setLoading(true);
     setError(null);
+    setWebpageGraph(null);
+    localStorage.removeItem("scrapeData");
 
     try {
       const response = await axios.get(
-        `${config.SEARCH_ENGINE_API_URL}/api/scrape_web?url=${encodeURIComponent(url)}`
+        `${
+          config.SEARCH_ENGINE_API_URL
+        }/api/scrape_web?url=${encodeURIComponent(url)}`
       );
+
       setData(response.data);
-      // Save to localStorage immediately after successful response
-      localStorage.setItem('scrapeData', JSON.stringify(response.data));
+      setTaskId(response.data.task_id);
+      localStorage.setItem("scrapeData", JSON.stringify(response.data));
     } catch (error) {
       setError(error.message);
-      // Optionally save error state to localStorage
-      localStorage.setItem('scrapeError', error.message);
-    } finally {
       setLoading(false);
+      localStorage.setItem("scrapeError", error.message);
     }
   };
 
@@ -78,23 +136,25 @@ const Scrape = () => {
 
   const handleClearData = () => {
     setData({});
-    setUrl('');
+    setUrl("");
     setError(null);
-    // Clear localStorage
-    localStorage.removeItem('scrapeUrl');
-    localStorage.removeItem('scrapeData');
-    localStorage.removeItem('scrapeError');
+    setTaskId(null);
+    setWebpageGraph(null);
+    setLoading(false);
+    localStorage.removeItem("scrapeUrl");
+    localStorage.removeItem("scrapeData");
+    localStorage.removeItem("scrapeError");
   };
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden", margin: 2, padding: 2 }}>
+    <Paper sx={{ width: "100%", overflow: "hidden", margin: 1, padding: 1 }}>
       <Stack
         direction="row"
         justifyContent="space-between"
         alignItems="center"
-        sx={{ mb: 3 }}
+        sx={{ mb: 1 }}
       >
-        <Typography variant="h6">Scrape Content</Typography>
+        <Typography variant="h6">Scrape Url</Typography>
         {Object.keys(data).length > 0 && (
           <Button
             variant="outlined"
@@ -128,19 +188,21 @@ const Scrape = () => {
           disabled={loading || !url.trim()}
           startIcon={<UploadFileIcon />}
         >
-          Start Scraping
+          {loading ? "Scraping..." : "Start Scraping"}
         </Button>
       </Stack>
 
       {loading && (
-        <Box sx={{ padding: 2, textAlign: "center" }}>Loading...</Box>
+        <Box sx={{ padding: 2, textAlign: "center" }}>
+          Scraping in progress... This may take a few minutes.
+        </Box>
       )}
 
       {error && (
         <Box sx={{ padding: 2, color: "error.main" }}>Error: {error}</Box>
       )}
 
-      {!loading && !error && Object.keys(data).length > 0 && (
+      {!error && Object.keys(data).length > 0 && (
         <TableContainer sx={{ maxHeight: 900 }}>
           <Table stickyHeader>
             <TableHead>
@@ -185,7 +247,15 @@ const Scrape = () => {
         </Box>
       )}
 
-      <LogViewer taskId={url}/>
+      <Box sx={{ flexGrow: 1 }}>
+        <LogViewer taskId={url} onQueuedLogsChange={handleQueuedLogsChange} />
+      </Box>
+
+      {webpageGraph && parentQueuedLogs.length === 1 && (
+        <Box sx={{ flexGrow: 1, minHeight: "700px" }}>
+          <WebpageNetwork data={webpageGraph} />
+        </Box>
+      )}
     </Paper>
   );
 };
