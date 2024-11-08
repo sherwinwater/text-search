@@ -11,8 +11,7 @@ import {
   Box,
   TextField,
   Button,
-  Stack,
-  Typography,
+  Stack
 } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import LogViewer from "./LogViewer";

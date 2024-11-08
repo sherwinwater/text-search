@@ -15,6 +15,52 @@ const WebpageNetwork = ({ data }) => {
     damping: 0.09,
   });
 
+  // Function to calculate node colors based on connections
+  const calculateNodeColors = (nodes, edges) => {
+    // Count connections for each node
+    const connectionCounts = {};
+    edges.forEach(edge => {
+      connectionCounts[edge.from] = (connectionCounts[edge.from] || 0) + 1;
+      connectionCounts[edge.target] = (connectionCounts[edge.target] || 0) + 1;
+    });
+
+    // Find the max connections to normalize the color scale
+    const maxConnections = Math.max(...Object.values(connectionCounts));
+
+    // Update nodes with colors based on connection count
+    return nodes.map(node => {
+      const connections = connectionCounts[node.id] || 0;
+
+      let nodeColor;
+      if (connections === 0) {
+        nodeColor = '#D1E5FD';  // no connections
+      } else if (connections <= 0.2* maxConnections) {
+        nodeColor = '#97C2FC';  // Light blue for low connections
+      } else if (connections <= 0.5* maxConnections) {
+        nodeColor = '#2B7CE9';  // Medium blue for medium connections
+      } else {
+        nodeColor = '#1B4C89';  // Dark blue for high connections
+      }
+
+      return {
+        ...node,
+        color: {
+          background: nodeColor,
+          border: '#2B7CE9',
+          highlight: {
+            background: nodeColor,
+            border: '#2B7CE9'
+          }
+        },
+        title: `<div>
+          <strong>${node.title}</strong><br/>
+          <a href="${node.url}" target="_blank">${node.url}</a><br/>
+          Connections: ${connections}
+        </div>`
+      };
+    });
+  };
+
   // Function to update physics settings
   const updatePhysics = (newOptions) => {
     if (networkInstance.current) {
@@ -66,7 +112,7 @@ const WebpageNetwork = ({ data }) => {
         });
         break;
     }
-};
+  };
 
   useEffect(() => {
     if (!data?.nodes || !data?.links || !networkContainer.current) return;
@@ -84,10 +130,7 @@ const WebpageNetwork = ({ data }) => {
           uniqueNodesMap.set(node.id, {
             id: node.id,
             label: node.label,
-            title: `<div>
-              <strong>${node.title}</strong><br/>
-              <a href="${node.url}" target="_blank">${node.url}</a>
-            </div>`,
+            title: node.title,
             url: node.url,
           });
         }
@@ -96,29 +139,35 @@ const WebpageNetwork = ({ data }) => {
       // Deduplicate edges using a Set
       const seenEdges = new Set();
       const uniqueEdges = data.links
-        .filter((link) => {
-          const edgeKey = `${link.source}-${link.target}`;
-          if (seenEdges.has(edgeKey)) {
-            return false;
-          }
-          seenEdges.add(edgeKey);
-          return true;
-        })
-        .map((link) => ({
-          from: link.source,
-          to: link.target,
-          arrows: "to",
-        }));
+          .filter((link) => {
+            const edgeKey = `${link.source}-${link.target}`;
+            if (seenEdges.has(edgeKey)) {
+              return false;
+            }
+            seenEdges.add(edgeKey);
+            return true;
+          })
+          .map((link) => ({
+            from: link.source,
+            to: link.target,
+            arrows: "to",
+          }));
 
-      // Create DataSets with deduplicated data
-      const nodes = new DataSet(Array.from(uniqueNodesMap.values()));
+      // Apply color calculations to nodes
+      const nodesWithColors = calculateNodeColors(
+          Array.from(uniqueNodesMap.values()),
+          uniqueEdges
+      );
+
+      // Create DataSets with deduplicated and colored data
+      const nodes = new DataSet(nodesWithColors);
       const edges = new DataSet(uniqueEdges);
 
-      // Improved network configuration
+      // Network configuration
       const options = {
         nodes: {
           shape: "dot",
-          size: 8,
+          size: 8,  // Fixed size for all nodes
           font: {
             size: 9,
             face: "Arial",
@@ -126,14 +175,6 @@ const WebpageNetwork = ({ data }) => {
           },
           borderWidth: 1,
           shadow: false,
-          color: {
-            border: "#2B7CE9",
-            background: "#97C2FC",
-            highlight: {
-              border: "#2B7CE9",
-              background: "#D2E5FF",
-            },
-          },
         },
         edges: {
           width: 1,
@@ -185,9 +226,9 @@ const WebpageNetwork = ({ data }) => {
 
       // Create network
       networkInstance.current = new Network(
-        networkContainer.current,
-        { nodes, edges },
-        options
+          networkContainer.current,
+          { nodes, edges },
+          options
       );
 
       // Event handlers
@@ -199,7 +240,6 @@ const WebpageNetwork = ({ data }) => {
       networkInstance.current.on("stabilizationIterationsDone", function () {
         setIsStabilized(true);
         setStabilizationProgress(100);
-        // Disable physics after stabilization
         networkInstance.current.setOptions({ physics: { enabled: false } });
       });
 
@@ -236,83 +276,80 @@ const WebpageNetwork = ({ data }) => {
   }, [data]);
 
   const controls = (
-    <div className="absolute top-4 left-4 right-4 z-10 bg-white p-3 rounded-lg shadow-lg">
-      <div className="flex flex-wrap gap-3 items-center">
-        {/* Left section - Basic Controls */}
-        <div className="flex gap-2">
-          <button
-            className="px-2 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50"
-            onClick={() => networkInstance.current?.fit()}
-          >
-            Fit
-          </button>
-          <button
-            className="px-2 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600"
-            onClick={() => {
-              setIsStabilized(false);
-              networkInstance.current?.stabilize();
-            }}
-            disabled={!isStabilized}
-          >
-            Stabilize
-          </button>
-          <button
-            className="px-2 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
-            onClick={() =>
-              networkInstance.current?.setOptions({
-                physics: { enabled: false },
-              })
-            }
-          >
-            Stop
-          </button>
-
-          <button
-            className="px-2 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
-            onClick={() => applyPreset("spread")}
-          >
-            Spread
-          </button>
-          <button
-            className="px-2 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
-            onClick={() => applyPreset("compact")}
-          >
-            Compact
-          </button>
-          <button
-            className="px-2 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
-            onClick={() => applyPreset("default")}
-          >
-            Default
-          </button>
+      <div className="absolute top-4 left-4 right-4 z-10 bg-white p-3 rounded-lg shadow-lg">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex gap-2">
+            <button
+                className="px-2 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50"
+                onClick={() => networkInstance.current?.fit()}
+            >
+              Fit
+            </button>
+            <button
+                className="px-2 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+                onClick={() => {
+                  setIsStabilized(false);
+                  networkInstance.current?.stabilize();
+                }}
+                disabled={!isStabilized}
+            >
+              Stabilize
+            </button>
+            <button
+                className="px-2 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                onClick={() =>
+                    networkInstance.current?.setOptions({
+                      physics: { enabled: false },
+                    })
+                }
+            >
+              Stop
+            </button>
+            <button
+                className="px-2 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
+                onClick={() => applyPreset("spread")}
+            >
+              Spread
+            </button>
+            <button
+                className="px-2 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
+                onClick={() => applyPreset("compact")}
+            >
+              Compact
+            </button>
+            <button
+                className="px-2 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
+                onClick={() => applyPreset("default")}
+            >
+              Default
+            </button>
+          </div>
         </div>
       </div>
-
-    </div>
   );
 
   return (
-    <div className="relative">
-      {controls}
-      <div
-        ref={networkContainer}
-        className="w-full border border-gray-200 rounded-lg bg-white"
-        style={{ height: "700px" }}
-      />
-      {!isStabilized && (
-        <div className="absolute bottom-4 left-4 right-4 z-10">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${stabilizationProgress}%` }}
-            />
-          </div>
-          <div className="text-center text-sm text-gray-600 mt-1">
-            Stabilizing: {stabilizationProgress}%
-          </div>
-        </div>
-      )}
-    </div>
+      <div className="relative">
+        {controls}
+        <div
+            ref={networkContainer}
+            className="w-full border border-gray-200 rounded-lg bg-white"
+            style={{ height: "700px" }}
+        />
+        {!isStabilized && (
+            <div className="absolute bottom-4 left-4 right-4 z-10">
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${stabilizationProgress}%` }}
+                />
+              </div>
+              <div className="text-center text-sm text-gray-600 mt-1">
+                Stabilizing: {stabilizationProgress}%
+              </div>
+            </div>
+        )}
+      </div>
   );
 };
 
