@@ -83,7 +83,7 @@ const WebpageNetwork = ({ data }) => {
         if (!uniqueNodesMap.has(node.id)) {
           uniqueNodesMap.set(node.id, {
             id: node.id,
-            label: node.title,
+            label: node.label,
             title: `<div>
               <strong>${node.title}</strong><br/>
               <a href="${node.url}" target="_blank">${node.url}</a>

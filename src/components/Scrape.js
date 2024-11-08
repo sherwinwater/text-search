@@ -150,25 +150,6 @@ const Scrape = () => {
     <Paper sx={{ width: "100%", overflow: "hidden", margin: 1, padding: 1 }}>
       <Stack
         direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 1 }}
-      >
-        <Typography variant="h6">Scrape Url</Typography>
-        {Object.keys(data).length > 0 && (
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={handleClearData}
-            size="small"
-          >
-            Clear Data
-          </Button>
-        )}
-      </Stack>
-
-      <Stack
-        direction="row"
         spacing={2}
         sx={{ marginBottom: 3 }}
         alignItems="center"
@@ -190,6 +171,16 @@ const Scrape = () => {
         >
           {loading ? "Scraping..." : "Start Scraping"}
         </Button>
+        {Object.keys(data).length > 0 && (
+            <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleClearData}
+                size="small"
+            >
+              Clear Data
+            </Button>
+        )}
       </Stack>
 
       {loading && (
