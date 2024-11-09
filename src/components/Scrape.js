@@ -121,12 +121,11 @@ const Scrape = () => {
     setWebpageGraph(null);
     localStorage.removeItem("scrapeData");
 
+    const apiUrl = `${config.SEARCH_ENGINE_API_URL}/api/scrape_web?url=${encodeURIComponent(url)}`;
+    console.log('Calling API:', apiUrl);
+
     try {
-      const response = await axios.get(
-          `${
-              config.SEARCH_ENGINE_API_URL
-          }/api/scrape_web?url=${encodeURIComponent(url)}`
-      );
+      const response = await axios.get(apiUrl);
 
       setData(response.data);
       setTaskId(response.data.task_id);
