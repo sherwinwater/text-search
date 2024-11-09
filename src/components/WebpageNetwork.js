@@ -107,21 +107,7 @@ const WebpageNetwork = ({data}) => {
                         background: '#FFA500',
                         border: '#FF8C00'
                     }
-                },
-                title: `
-          <div style="padding: 10px; max-width: 300px;">
-            <strong>${node.title}</strong><br/>
-            <a href="${node.url}" target="_blank" style="color: #2B7CE9;">${node.url}</a><br/>
-            <hr style="margin: 5px 0;"/>
-            <strong>Stats:</strong><br/>
-            • Content Length: ${node.metadata?.content_length?.toLocaleString() || 0} bytes<br/>
-            • Outbound Links: ${node.metadata?.outbound_links || 0}<br/>
-            • Headers: ${node.metadata?.headers_count || 0}<br/>
-            • Code Blocks: ${node.metadata?.code_blocks || 0}<br/>
-            • Page Rank: ${node.final_rank?.toFixed(4) || 0}<br/>
-            • Connections: ${connections.toFixed(2)}
-          </div>
-        `
+                }
             };
         });
     };
@@ -141,14 +127,6 @@ const WebpageNetwork = ({data}) => {
                 to: link.target,
                 arrows: "to",
                 width: Math.max(0.5, link.weight * 1.5), // Scale edge width by weight
-                title: `
-          <div style="padding: 5px;">
-            <strong>Link Details:</strong><br/>
-            • Text: ${link.metadata?.link_text || 'N/A'}<br/>
-            • Position: ${link.metadata?.link_position || 'N/A'}<br/>
-            • Weight: ${link.weight?.toFixed(2) || 0}
-          </div>
-        `,
                 color: {
                     color: '#848484',
                     opacity: 0.3 + (link.weight * 0.3), // More important links are more visible
@@ -271,10 +249,11 @@ const WebpageNetwork = ({data}) => {
                 networkInstance.current = null;
             }
         };
-    }, [data,physicsOptions]);
+    }, [data, physicsOptions]);
 
     return (
-        <Container maxWidth={false} sx={{position: 'relative', height: '70vh', pt: 2, pb: 2, pl: 0, pr: 0}} disableGutters>
+        <Container maxWidth={false} sx={{position: 'relative', height: '85vh', pt: 2, pb: 2, pl: 0, pr: 0}}
+                   disableGutters>
             {/* Control Panel - Fixed at the top */}
             <Paper
                 elevation={3}
@@ -344,7 +323,7 @@ const WebpageNetwork = ({data}) => {
                 ref={networkContainer}
                 sx={{
                     width: '100vw',
-                    height: '70vh',
+                    height: '80vh',
                     border: 1,
                     borderColor: 'divider',
                     borderRadius: 1,
@@ -385,35 +364,36 @@ const WebpageNetwork = ({data}) => {
                     elevation={3}
                     sx={{
                         position: 'absolute',
-                        bottom: 16,
-                        right: 16,
+                        bottom: 50,
+                        left: 10,
                         zIndex: 1100,
                         p: 2,
-                        maxWidth: 400
+                        maxWidth: 600,
+                        textAlign:'left'
                     }}
                 >
-                    <Typography variant="h6" gutterBottom>
-                        {selectedNode.title}
+                    <Typography variant="body2" gutterBottom>
+                        Title: {selectedNode.title}
                     </Typography>
-                    <Link
-                        href={selectedNode.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{display: 'block', mb: 2}}
-                    >
-                        {selectedNode.url}
-                    </Link>
                     <Stack spacing={1}>
                         <Typography variant="body2">
-                            Content Length: {selectedNode.metadata?.content_length?.toLocaleString() || 0} bytes
+                            Page Rank: {selectedNode.final_rank?.toFixed(4) || 0}
                         </Typography>
                         <Typography variant="body2">
                             Outbound Links: {selectedNode.metadata?.outbound_links || 0}
                         </Typography>
                         <Typography variant="body2">
-                            Page Rank: {selectedNode.final_rank?.toFixed(4) || 0}
+                            Content Length: {selectedNode.metadata?.content_length?.toLocaleString() || 0} bytes
                         </Typography>
                     </Stack>
+                    <Link
+                        href={selectedNode.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{display: 'block', mb: 0,fontSize:"10px"}}
+                    >
+                        {selectedNode.url}
+                    </Link>
                 </Paper>
             )}
         </Container>
