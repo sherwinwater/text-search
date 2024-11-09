@@ -11,8 +11,7 @@ import {
   Box,
   TextField,
   Button,
-  Stack,
-  Typography,
+  Stack
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { config } from "../config/config";
@@ -100,32 +99,14 @@ const SearchText = () => {
       sx={{
         width: "100%",
         overflow: "hidden",
-        margin: 2,
-        padding: 2,
+        margin: 1,
+        padding: 1,
         display: "flex",
         flexDirection: "column",
         height: "calc(100vh - 32px)"
       }}
     >
       {/* Header and Clear Button */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 3 }}
-      >
-        <Typography variant="h6">Search Text</Typography>
-        {(data.length > 0 || searchQuery || searchIndexId) && (
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={handleClearSearch}
-            size="small"
-          >
-            Clear Search
-          </Button>
-        )}
-      </Stack>
 
       {/* Search Section */}
       <Stack
@@ -141,7 +122,7 @@ const SearchText = () => {
           value={searchIndexId}
           onChange={(e) => setSearchIndexId(e.target.value)}
           onKeyPress={handleKeyPress}
-          sx={{ maxWidth: 350 }}
+          sx={{ maxWidth: 400 }}
         />
         <TextField
           fullWidth
@@ -150,7 +131,7 @@ const SearchText = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyPress={handleKeyPress}
-          sx={{ maxWidth: 1050 }}
+          sx={{ maxWidth: 900 }}
         />
         <Button
           variant="contained"
@@ -160,6 +141,16 @@ const SearchText = () => {
         >
           Search
         </Button>
+        {(data.length > 0 || searchQuery || searchIndexId) && (
+            <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleClearSearch}
+                size="small"
+            >
+              Clear Search
+            </Button>
+        )}
       </Stack>
 
       {/* Loading State */}

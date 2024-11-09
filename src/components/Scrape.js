@@ -237,15 +237,13 @@ const Scrape = () => {
         </Box>
       )}
 
+      {webpageGraph && parentQueuedLogs.length === 1 && (
+          <WebpageNetwork data={webpageGraph} />
+      )}
+
       <Box sx={{ flexGrow: 1 }}>
         <LogViewer taskId={url} onQueuedLogsChange={handleQueuedLogsChange} />
       </Box>
-
-      {webpageGraph && parentQueuedLogs.length === 1 && (
-        <Box sx={{ flexGrow: 1, minHeight: "700px" }}>
-          <WebpageNetwork data={webpageGraph} />
-        </Box>
-      )}
     </Paper>
   );
 };

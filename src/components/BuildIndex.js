@@ -5,8 +5,7 @@ import {
   Box,
   TextField,
   Button,
-  Stack,
-  Typography,
+  Stack
 } from "@mui/material";
 import BuildIcon from "@mui/icons-material/Build";
 import LogViewer from "./LogViewer";
@@ -82,26 +81,8 @@ const BuildIndex = () => {
   };
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden", margin: 2, padding: 2 }}>
+    <Paper sx={{ width: "100%", overflow: "hidden", margin: 1, padding: 1 }}>
       {/* Header and Clear Button */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 3 }}
-      >
-        <Typography variant="h6">Build Index</Typography>
-        {(Object.keys(data).length > 0 || indexName) && (
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={handleClearData}
-            size="small"
-          >
-            Clear Data
-          </Button>
-        )}
-      </Stack>
 
       {/* Input Section */}
       <Stack
@@ -127,6 +108,16 @@ const BuildIndex = () => {
         >
           Build Index
         </Button>
+        {(Object.keys(data).length > 0 || indexName) && (
+            <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleClearData}
+                size="small"
+            >
+              Clear Data
+            </Button>
+        )}
       </Stack>
 
       {/* Loading State */}
