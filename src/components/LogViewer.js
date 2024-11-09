@@ -132,6 +132,9 @@ const LogViewer = ({taskId, onQueuedLogsChange}) => {
         });
 
         socket.on("log_message", (logEntry) => {
+            if (logEntry.message.toLowerCase().includes('health check')) {
+                return;
+            }
             setQueuedLogs(prev => [...prev, logEntry]);
         });
 

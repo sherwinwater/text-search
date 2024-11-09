@@ -1,5 +1,5 @@
 export const config = {
-    SEARCH_ENGINE_API_URL: process.env.REACT_APP_SEARCH_ENGINE_API_URL || 'http://localhost:5009',
+    SEARCH_ENGINE_API_URL: process.env.REACT_APP_SEARCH_ENGINE_API_URL || 'https://search-engine.shuwen.cloud',
 };
 
 // Helper function to ensure URL is properly formatted
