@@ -82,7 +82,7 @@ const WebpageNetwork = ({data}) => {
         // const maxConnections = Math.max(...Object.values(connectionCounts));
 
         return nodes.map(node => {
-            const connections = connectionCounts[node.id] || 0;
+            // const connections = connectionCounts[node.id] || 0;
             const normalizedRank = node.final_rank || 0;
 
             // Calculate node size based on content length and outbound links

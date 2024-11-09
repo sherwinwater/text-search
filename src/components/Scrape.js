@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Table,
@@ -31,6 +31,7 @@ const Scrape = () => {
   const [taskId, setTaskId] = useState(null);
   const [webpageGraph, setWebpageGraph] = useState(null);
   const [parentQueuedLogs, setParentQueuedLogs] = useState([]);
+  const networkRef = useRef(null);
 
   const handleQueuedLogsChange = (logs) => {
     setParentQueuedLogs(logs);
@@ -45,6 +46,16 @@ const Scrape = () => {
       return {};
     }
   });
+
+  // Effect to handle scrolling when WebpageNetwork becomes visible
+  useEffect(() => {
+    if (webpageGraph && parentQueuedLogs.length === 1 && networkRef.current) {
+      networkRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  }, [webpageGraph, parentQueuedLogs.length]);
 
   // Save to localStorage whenever data or url changes
   useEffect(() => {
@@ -64,7 +75,7 @@ const Scrape = () => {
 
       try {
         const response = await axios.get(
-          `${config.SEARCH_ENGINE_API_URL}/api/scrape_status/${taskId}`
+            `${config.SEARCH_ENGINE_API_URL}/api/scrape_status/${taskId}`
         );
 
         setData((prevData) => ({
@@ -112,9 +123,9 @@ const Scrape = () => {
 
     try {
       const response = await axios.get(
-        `${
-          config.SEARCH_ENGINE_API_URL
-        }/api/scrape_web?url=${encodeURIComponent(url)}`
+          `${
+              config.SEARCH_ENGINE_API_URL
+          }/api/scrape_web?url=${encodeURIComponent(url)}`
       );
 
       setData(response.data);
@@ -146,105 +157,107 @@ const Scrape = () => {
   };
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden", margin: 1, padding: 1 }}>
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{ marginBottom: 3 }}
-        alignItems="center"
-      >
-        <TextField
-          fullWidth
-          label="Enter URL to scrape"
-          variant="outlined"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          onKeyPress={handleKeyPress}
-          sx={{ maxWidth: 1100 }}
-        />
-        <Button
-          variant="contained"
-          onClick={handleScraping}
-          disabled={loading || !url.trim()}
-          startIcon={<UploadFileIcon />}
+      <Paper sx={{ width: "100%", overflow: "hidden", margin: 1, padding: 1 }}>
+        <Stack
+            direction="row"
+            spacing={2}
+            sx={{ marginBottom: 3 }}
+            alignItems="center"
         >
-          {loading ? "Scraping..." : "Start Scraping"}
-        </Button>
-        {Object.keys(data).length > 0 && (
-            <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handleClearData}
-                size="small"
-            >
-              Clear Data
-            </Button>
-        )}
-      </Stack>
-
-      {loading && (
-        <Box sx={{ padding: 2, textAlign: "center" }}>
-          Scraping in progress... This may take a few minutes.
-        </Box>
-      )}
-
-      {error && (
-        <Box sx={{ padding: 2, color: "error.main" }}>Error: {error}</Box>
-      )}
-
-      {!error && Object.keys(data).length > 0 && (
-        <TableContainer sx={{ maxHeight: 900 }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell>Task ID</TableCell>
-                <TableCell>Scraping Status</TableCell>
-                <TableCell>URL Scraped</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow
-                hover
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+          <TextField
+              fullWidth
+              label="Enter URL to scrape"
+              variant="outlined"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyPress={handleKeyPress}
+              sx={{ maxWidth: 1100 }}
+          />
+          <Button
+              variant="contained"
+              onClick={handleScraping}
+              disabled={loading || !url.trim()}
+              startIcon={<UploadFileIcon />}
+          >
+            {loading ? "Scraping..." : "Start Scraping"}
+          </Button>
+          {Object.keys(data).length > 0 && (
+              <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleClearData}
+                  size="small"
               >
-                <TableCell>{data.task_id}</TableCell>
-                <TableCell sx={{ maxWidth: 1100 }}>
-                  <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
-                    {data.message}
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Box
-                    sx={{
-                      maxWidth: 500,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
+                Clear Data
+              </Button>
+          )}
+        </Stack>
+
+        {loading && (
+            <Box sx={{ padding: 2, textAlign: "center" }}>
+              Scraping in progress... This may take a few minutes.
+            </Box>
+        )}
+
+        {error && (
+            <Box sx={{ padding: 2, color: "error.main" }}>Error: {error}</Box>
+        )}
+
+        {!error && Object.keys(data).length > 0 && (
+            <TableContainer sx={{ maxHeight: 900 }}>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Task ID</TableCell>
+                    <TableCell>Scraping Status</TableCell>
+                    <TableCell>URL Scraped</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow
+                      hover
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
-                    {url}
-                  </Box>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+                    <TableCell>{data.task_id}</TableCell>
+                    <TableCell sx={{ maxWidth: 1100 }}>
+                      <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
+                        {data.message}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box
+                          sx={{
+                            maxWidth: 500,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                      >
+                        {url}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+        )}
 
-      {!loading && !error && Object.keys(data).length === 0 && url && (
-        <Box sx={{ padding: 2, textAlign: "center", color: "text.secondary" }}>
-          No content found for this URL.
+        {!loading && !error && Object.keys(data).length === 0 && url && (
+            <Box sx={{ padding: 2, textAlign: "center", color: "text.secondary" }}>
+              No content found for this URL.
+            </Box>
+        )}
+
+        <Box ref={networkRef}>
+          {webpageGraph && parentQueuedLogs.length === 1 && (
+              <WebpageNetwork data={webpageGraph} />
+          )}
         </Box>
-      )}
 
-      {webpageGraph && parentQueuedLogs.length === 1 && (
-          <WebpageNetwork data={webpageGraph} />
-      )}
-
-      <Box sx={{ flexGrow: 1 }}>
-        <LogViewer taskId={url} onQueuedLogsChange={handleQueuedLogsChange} />
-      </Box>
-    </Paper>
+        <Box sx={{ flexGrow: 1 }}>
+          <LogViewer taskId={url} onQueuedLogsChange={handleQueuedLogsChange} />
+        </Box>
+      </Paper>
   );
 };
 
