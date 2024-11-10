@@ -1,10 +1,12 @@
 export const config = {
-    SEARCH_ENGINE_API_URL: process.env.REACT_APP_SEARCH_ENGINE_API_URL || 'https://search-engine.shuwen.cloud',
+    SEARCH_ENGINE_API_URL: (process.env.REACT_APP_SEARCH_ENGINE_API_URL || 'https://search-engine.shuwen.cloud').trim(),
 };
 
 // Helper function to ensure URL is properly formatted
 const formatApiUrl = (url) => {
     if (!url) return '';
+    // First trim any whitespace
+    url = url.trim();
     // Remove trailing slashes
     return url.replace(/\/+$/, '');
 };
