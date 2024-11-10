@@ -1,6 +1,6 @@
-import React, {useEffect, useRef, useState} from "react";
-import {Network} from "vis-network";
-import {DataSet} from "vis-data";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { Network } from "vis-network";
+import { DataSet } from "vis-data";
 import {
     Box,
     Button,
@@ -12,7 +12,7 @@ import {
     Container
 } from '@mui/material';
 
-const WebpageNetwork = ({data}) => {
+const WebpageNetwork = ({ data }) => {
     const networkContainer = useRef(null);
     const networkInstance = useRef(null);
     const [isStabilized, setIsStabilized] = useState(false);
@@ -31,69 +31,93 @@ const WebpageNetwork = ({data}) => {
         damping: 0.09,
     });
 
-    // Physics and preset functions remain the same
-    const updatePhysics = (newOptions) => {
-        if (networkInstance.current) {
-            networkInstance.current.setOptions({
-                physics: {
-                    barnesHut: {
-                        ...physicsOptions,
-                        ...newOptions,
-                    },
-                },
-            });
-            setPhysicsOptions((prev) => ({...prev, ...newOptions}));
+    // Memoized physics presets
+    const presets = useMemo(() => ({
+        spread: {
+            gravitationalConstant: -3000,
+            centralGravity: 0.1,
+            springLength: 300,
+            springConstant: 0.02,
+        },
+        compact: {
+            gravitationalConstant: -1000,
+            centralGravity: 0.8,
+            springLength: 100,
+            springConstant: 0.08,
+        },
+        default: {
+            gravitationalConstant: -2000,
+            centralGravity: 0.3,
+            springLength: 200,
+            springConstant: 0.04,
         }
-    };
+    }), []);
 
-    const applyPreset = (preset) => {
-        const presets = {
-            spread: {
-                gravitationalConstant: -3000,
-                centralGravity: 0.1,
-                springLength: 300,
-                springConstant: 0.02,
+    // Memoized network options with optimized physics settings
+    const networkOptions = useMemo(() => ({
+        nodes: {
+            shape: "dot",
+            font: {
+                size: 10,
+                face: "Arial",
+                color: "#333333",
             },
-            compact: {
-                gravitationalConstant: -1000,
-                centralGravity: 0.8,
-                springLength: 100,
-                springConstant: 0.08,
-            },
-            default: {
-                gravitationalConstant: -2000,
-                centralGravity: 0.3,
-                springLength: 200,
-                springConstant: 0.04,
+            borderWidth: 1,
+            shadow: true,
+            scaling: {
+                label: {
+                    enabled: true,
+                    min: 8,
+                    max: 20
+                }
             }
-        };
-        updatePhysics(presets[preset] || presets.default);
-    };
+        },
+        edges: {
+            smooth: {
+                type: "continuous",
+                roundness: 0.5,
+            },
+            length: 200,
+        },
+        physics: {
+            enabled: true,
+            stabilization: {
+                enabled: true,
+                iterations: 1000,
+                updateInterval: 50,
+            },
+            barnesHut: {
+                ...physicsOptions,
+                theta: 0.5, // Optimize performance with slight accuracy trade-off
+                gravitationalConstant: physicsOptions.gravitationalConstant,
+                centralGravity: physicsOptions.centralGravity,
+                springLength: physicsOptions.springLength,
+                springConstant: physicsOptions.springConstant,
+                damping: physicsOptions.damping,
+            },
+        },
+        interaction: {
+            hover: true,
+            tooltipDelay: 200,
+            hideEdgesOnDrag: true,
+            hideEdgesOnZoom: true,
+            zoomView: true,
+            dragView: true,
+            multiselect: true,
+            hoverConnectedEdges: true,
+        }
+    }), [physicsOptions]);
 
-
-    // Enhanced node color calculation using more metadata
-    const calculateNodeColors = (nodes, edges) => {
-        const connectionCounts = {};
-        edges.forEach(edge => {
-            connectionCounts[edge.from] = (connectionCounts[edge.from] || 0) + edge.weight;
-            connectionCounts[edge.target] = (connectionCounts[edge.target] || 0) + edge.weight;
-        });
-
-        // const maxConnections = Math.max(...Object.values(connectionCounts));
-
+    // Memoized node color calculation
+    const calculateNodeColors = useCallback((nodes, edges) => {
         return nodes.map(node => {
-            // const connections = connectionCounts[node.id] || 0;
             const normalizedRank = node.final_rank || 0;
-
-            // Calculate node size based on content length and outbound links
             const baseSize = 4;
             const sizeMultiplier = Math.log(
                 (node.metadata?.content_length || 0) / 1000 +
                 (node.metadata?.outbound_links || 0) + 1
             );
             const nodeSize = baseSize * (0.1 + sizeMultiplier);
-
-            // Color based on both connections and page rank
             const blueComponent = Math.min(255, Math.round(200 * (1 - normalizedRank)));
             const nodeColor = `rgb(${blueComponent}, ${blueComponent}, 255)`;
 
@@ -110,10 +134,10 @@ const WebpageNetwork = ({data}) => {
                 }
             };
         });
-    };
+    }, []);
 
-    // Enhanced edge processing
-    const processEdges = (links) => {
+    // Memoized edge processing
+    const processEdges = useCallback((links) => {
         const seenEdges = new Set();
         return links
             .filter((link) => {
@@ -126,29 +150,51 @@ const WebpageNetwork = ({data}) => {
                 from: link.source,
                 to: link.target,
                 arrows: "to",
-                width: Math.max(0.5, link.weight * 1.5), // Scale edge width by weight
+                width: Math.max(0.5, link.weight * 1.5),
                 color: {
                     color: '#848484',
-                    opacity: 0.3 + (link.weight * 0.3), // More important links are more visible
+                    opacity: 0.3 + (link.weight * 0.3),
                     highlight: '#FFA500'
                 }
             }));
-    };
+    }, []);
+
+    // Optimized update physics function
+    const updatePhysics = useCallback((newOptions) => {
+        if (networkInstance.current) {
+            networkInstance.current.setOptions({
+                physics: {
+                    barnesHut: {
+                        ...physicsOptions,
+                        ...newOptions,
+                    },
+                },
+            });
+            setPhysicsOptions(prev => ({ ...prev, ...newOptions }));
+        }
+    }, [physicsOptions]);
+
+    // Optimized preset application
+    const applyPreset = useCallback((preset) => {
+        updatePhysics(presets[preset] || presets.default);
+    }, [presets, updatePhysics]);
 
     useEffect(() => {
         if (!data?.nodes || !data?.links || !networkContainer.current) return;
 
-        try {
+        const cleanup = () => {
             if (networkInstance.current) {
                 networkInstance.current.destroy();
+                networkInstance.current = null;
             }
+        };
 
-            const uniqueNodesMap = new Map();
-            data.nodes.forEach((node) => {
-                if (!uniqueNodesMap.has(node.id)) {
-                    uniqueNodesMap.set(node.id, node);
-                }
-            });
+        try {
+            cleanup();
+
+            const uniqueNodesMap = new Map(
+                data.nodes.map(node => [node.id, node])
+            );
 
             const nodesWithColors = calculateNodeColors(
                 Array.from(uniqueNodesMap.values()),
@@ -165,108 +211,88 @@ const WebpageNetwork = ({data}) => {
             const nodes = new DataSet(nodesWithColors);
             const edges = new DataSet(uniqueEdges);
 
-            const options = {
-                nodes: {
-                    shape: "dot",
-                    font: {
-                        size: 10,
-                        face: "Arial",
-                        color: "#333333",
-                    },
-                    borderWidth: 1,
-                    shadow: true,
-                    scaling: {
-                        label: {
-                            enabled: true,
-                            min: 8,
-                            max: 20
-                        }
-                    }
-                },
-                edges: {
-                    smooth: {
-                        type: "continuous",
-                        roundness: 0.5,
-                    },
-                    length: 200,
-                },
-                physics: {
-                    enabled: true,
-                    stabilization: {
-                        enabled: true,
-                        iterations: 1000,
-                        updateInterval: 50,
-                    },
-                    barnesHut: physicsOptions,
-                },
-                interaction: {
-                    hover: true,
-                    tooltipDelay: 200,
-                    hideEdgesOnDrag: true,
-                    hideEdgesOnZoom: true,
-                    zoomView: true,
-                    dragView: true,
-                    multiselect: true,
-                    hoverConnectedEdges: true,
-                }
-            };
-
             networkInstance.current = new Network(
                 networkContainer.current,
-                {nodes, edges},
-                options
+                { nodes, edges },
+                networkOptions
             );
 
-            // Event handlers
-            networkInstance.current.on("stabilizationProgress", (params) => {
-                const progress = Math.round((params.iterations / params.total) * 100);
-                setStabilizationProgress(progress);
+            // Add event listeners with passive option
+            const addPassiveEventListener = (element, eventName) => {
+                element.addEventListener(eventName, (e) => {
+                    // Optional: Add any specific handling if needed
+                }, { passive: true });
+            };
+
+            // Add passive event listeners for touch and wheel events
+            const eventNames = ['wheel', 'touchstart', 'touchmove', 'touchend'];
+            eventNames.forEach(eventName => {
+                addPassiveEventListener(networkContainer.current, eventName);
             });
 
-            networkInstance.current.on("stabilizationIterationsDone", () => {
-                setIsStabilized(true);
-                setStabilizationProgress(100);
-                networkInstance.current.setOptions({physics: {enabled: false}});
-            });
+            // Optimized event handlers with debouncing
+            let stabilizationTimeout;
+            const handleStabilizationProgress = (params) => {
+                cancelAnimationFrame(stabilizationTimeout);
+                stabilizationTimeout = requestAnimationFrame(() => {
+                    const progress = Math.round((params.iterations / params.total) * 100);
+                    setStabilizationProgress(progress);
+                });
+            };
 
-            networkInstance.current.on("click", (params) => {
-                if (params.nodes.length > 0) {
-                    const nodeId = params.nodes[0];
-                    const node = nodes.get(nodeId);
-                    setSelectedNode(node);
-                } else {
-                    setSelectedNode(null);
-                }
-            });
+            let stabilizationDoneTimeout;
+            const handleStabilizationDone = () => {
+                cancelAnimationFrame(stabilizationDoneTimeout);
+                stabilizationDoneTimeout = requestAnimationFrame(() => {
+                    setIsStabilized(true);
+                    setStabilizationProgress(100);
+                    networkInstance.current?.setOptions({ physics: { enabled: false }});
+                });
+            };
 
+            let nodeClickTimeout;
+            const handleNodeClick = (params) => {
+                cancelAnimationFrame(nodeClickTimeout);
+                nodeClickTimeout = requestAnimationFrame(() => {
+                    if (params.nodes.length > 0) {
+                        const nodeId = params.nodes[0];
+                        const node = nodes.get(nodeId);
+                        setSelectedNode(node);
+                    } else {
+                        setSelectedNode(null);
+                    }
+                });
+            };
+
+            networkInstance.current.on("stabilizationProgress", handleStabilizationProgress);
+            networkInstance.current.on("stabilizationIterationsDone", handleStabilizationDone);
+            networkInstance.current.on("click", handleNodeClick);
+
+            return () => {
+                cancelAnimationFrame(stabilizationTimeout);
+                cancelAnimationFrame(stabilizationDoneTimeout);
+                cancelAnimationFrame(nodeClickTimeout);
+                cleanup();
+            };
         } catch (error) {
             console.error("Error creating network:", error);
+            cleanup();
         }
-
-        return () => {
-            if (networkInstance.current) {
-                networkInstance.current.destroy();
-                networkInstance.current = null;
-            }
-        };
-    }, [data, physicsOptions]);
+    }, [data, networkOptions, calculateNodeColors, processEdges]);
 
     return (
-        <Container maxWidth={false} sx={{position: 'relative', height: '85vh', pt: 2, pb: 2, pl: 0, pr: 0}}
-                   disableGutters>
-            {/* Control Panel - Fixed at the top */}
-            <Paper
-                elevation={3}
-                sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    zIndex: 1100,
-                    p: 2,
-                    backgroundColor: 'background.paper'
-                }}
-            >
+        <Container maxWidth={false} sx={{ position: 'relative', height: '85vh', pt: 2, pb: 2, pl: 0, pr: 0 }} disableGutters>
+            {/* Rest of the JSX remains the same */}
+            {/* Control Panel */}
+            <Paper elevation={3} sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 1100,
+                p: 2,
+                backgroundColor: 'background.paper'
+            }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Stack direction="row" spacing={1}>
                         <Button
@@ -318,7 +344,7 @@ const WebpageNetwork = ({data}) => {
                 </Stack>
             </Paper>
 
-            {/* Network Container - Takes remaining height */}
+            {/* Network Container */}
             <Box
                 ref={networkContainer}
                 sx={{
@@ -336,22 +362,15 @@ const WebpageNetwork = ({data}) => {
 
             {/* Progress Bar */}
             {!isStabilized && (
-                <Paper
-                    elevation={3}
-                    sx={{
-                        position: 'absolute',
-                        bottom: 16,
-                        left: 16,
-                        right: 16,
-                        p: 2,
-                        zIndex: 1100
-                    }}
-                >
-                    <LinearProgress
-                        variant="determinate"
-                        value={stabilizationProgress}
-                        sx={{mb: 1}}
-                    />
+                <Paper elevation={3} sx={{
+                    position: 'absolute',
+                    bottom: 16,
+                    left: 16,
+                    right: 16,
+                    p: 2,
+                    zIndex: 1100
+                }}>
+                    <LinearProgress variant="determinate" value={stabilizationProgress} sx={{mb: 1}} />
                     <Typography variant="body2" color="text.secondary" align="center">
                         Stabilizing: {stabilizationProgress}%
                     </Typography>
@@ -360,18 +379,15 @@ const WebpageNetwork = ({data}) => {
 
             {/* Node Info Panel */}
             {selectedNode && (
-                <Paper
-                    elevation={3}
-                    sx={{
-                        position: 'absolute',
-                        bottom: 50,
-                        left: 10,
-                        zIndex: 1100,
-                        p: 2,
-                        maxWidth: 600,
-                        textAlign:'left'
-                    }}
-                >
+                <Paper elevation={3} sx={{
+                    position: 'absolute',
+                    bottom: 50,
+                    left: 10,
+                    zIndex: 1100,
+                    p: 2,
+                    maxWidth: 600,
+                    textAlign: 'left'
+                }}>
                     <Typography variant="body2" gutterBottom>
                         Title: {selectedNode.title}
                     </Typography>
@@ -390,7 +406,7 @@ const WebpageNetwork = ({data}) => {
                         href={selectedNode.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        sx={{display: 'block', mb: 0,fontSize:"10px"}}
+                        sx={{display: 'block', mb: 0, fontSize: "10px"}}
                     >
                         {selectedNode.url}
                     </Link>
