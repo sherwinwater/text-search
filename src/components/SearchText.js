@@ -16,7 +16,11 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import { config } from "../config/config";
 
-const SearchText = () => {
+const SearchText = ({ defaultTaskId }) => {
+    const [searchIndexId, setSearchIndexId] = useState(() => {
+      return defaultTaskId || localStorage.getItem("searchIndexId") || "";
+    });
+
   const [data, setData] = useState(() => {
     const savedData = localStorage.getItem("searchResults");
     try {
@@ -34,18 +38,17 @@ const SearchText = () => {
     return localStorage.getItem("searchQuery") || "";
   });
 
-  const [searchIndexId, setSearchIndexId] = useState(() => {
-    return localStorage.getItem("searchIndexId") || "";
-  });
+  useEffect(() => {
+    if (defaultTaskId) {
+      setSearchIndexId(defaultTaskId);
+      localStorage.setItem("searchIndexId", defaultTaskId);
+    }
+  }, [defaultTaskId]);
 
   // Save to localStorage whenever search parameters change
   useEffect(() => {
     localStorage.setItem("searchQuery", searchQuery);
   }, [searchQuery]);
-
-  useEffect(() => {
-    localStorage.setItem("searchIndexId", searchIndexId);
-  }, [searchIndexId]);
 
   // Save search results to localStorage
   useEffect(() => {
@@ -66,6 +69,7 @@ const SearchText = () => {
         )}?query=${encodeURIComponent(searchQuery)}`
       );
       setData(response.data);
+      console.log("Response:", response.data);
       // Save to localStorage immediately after successful response
       localStorage.setItem("searchResults", JSON.stringify(response.data));
     } catch (error) {

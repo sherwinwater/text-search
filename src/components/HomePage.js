@@ -1,13 +1,11 @@
-import SearchText from "./SearchText";
 import BuildIndex from "./BuildIndex";
-import Scrape from "./Scrape";
 import { TabPanel } from "./TabPanel";
 
 import React, { useState } from "react";
 import { Box, Paper, Tabs, Tab } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import BuildIcon from "@mui/icons-material/Build";
+import KnowledgeBase from "./KnowledgeBase";
 
 const HomePage = () => {
   const [currentTab, setCurrentTab] = useState(0);
@@ -74,20 +72,14 @@ const HomePage = () => {
                 }}
             >
               <Tab
-                  label="Scrape"
+                  label="Knowledge Base"
                   icon={<UploadFileIcon />}
                   iconPosition="start"
                   sx={tabStyles}
               />
               <Tab
-                  label="Build Index"
+                  label="Build New Knowledge"
                   icon={<BuildIcon />}
-                  iconPosition="start"
-                  sx={tabStyles}
-              />
-              <Tab
-                  label="Search Text"
-                  icon={<SearchIcon />}
                   iconPosition="start"
                   sx={tabStyles}
               />
@@ -97,13 +89,10 @@ const HomePage = () => {
 
         <Paper sx={{ width: "100%" }}>
           <TabPanel value={currentTab} index={0}>
-            <Scrape />
+            <KnowledgeBase />
           </TabPanel>
           <TabPanel value={currentTab} index={1}>
             <BuildIndex />
-          </TabPanel>
-          <TabPanel value={currentTab} index={2}>
-            <SearchText />
           </TabPanel>
         </Paper>
       </Box>
