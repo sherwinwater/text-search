@@ -31,6 +31,7 @@ const WebpageNetwork = ({ data }) => {
         springLength: 200,
         springConstant: 0.04,
         damping: 0.09,
+        avoidOverlap: 0.5
     });
 
     // Modified physics presets with more distinct differences
@@ -170,7 +171,7 @@ const WebpageNetwork = ({ data }) => {
             tooltipDelay: 200,
             hideEdgesOnDrag: true,
             hideEdgesOnZoom: true,
-            zoomView: true,
+            zoomView: false,
             dragView: true,
             multiselect: true,
             hoverConnectedEdges: true,
@@ -331,10 +332,10 @@ const WebpageNetwork = ({ data }) => {
     }, [data, networkOptions, calculateNodeColors, processEdges]);
 
     return (
-        <Container maxWidth={false} sx={{ position: 'relative', height: '85vh', pt: 2, pb: 2, pl: 0, pr: 0 }} disableGutters>
+        <Container maxWidth={false} sx={{ position: 'relative', height: '75vh', pt: 2, pb: 2, pl: 0, pr: 0 }} disableGutters>
             {/* Control Panel */}
             <Paper elevation={3} sx={{
-                position: 'absolute',
+                position: 'relative',
                 top: 0,
                 left: 0,
                 right: 0,
@@ -404,8 +405,8 @@ const WebpageNetwork = ({ data }) => {
             <Box
                 ref={networkContainer}
                 sx={{
-                    width: '100vw',
-                    height: '80vh',
+                    width: '100%',
+                    height: '70vh',
                     border: 1,
                     borderColor: 'divider',
                     borderRadius: 1,

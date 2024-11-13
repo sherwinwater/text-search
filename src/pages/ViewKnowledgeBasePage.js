@@ -7,14 +7,16 @@ import {
     Paper,
     Typography,
     IconButton,
-    Chip,
     Fade,
-    Skeleton
+    Skeleton, Button
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import {config} from '../config/config';
-import WebpageNetwork from "./WebpageNetwork";
+import WebpageNetwork from "../components/WebpageNetwork";
+import ClusterBrowser from "../components/ClusterBrowser";
+import SearchIcon from "@mui/icons-material/Search";
+import TaskDetails from "../components/TaskDetails";
 
 const ViewKnowledgeBasePage = () => {
     const {taskId} = useParams();
@@ -67,31 +69,44 @@ const ViewKnowledgeBasePage = () => {
         if (window.history.length <= 1) {
             window.close();
         } else {
-            navigate('/knowledge-base', { replace: true });
+            navigate('/knowledge-base', {replace: true});
         }
+    };
+
+    const handleSearch = (taskId) => {
+        if (data) {
+            localStorage.setItem('knowledgeBaseData', JSON.stringify({
+                task_id: data.task_id,
+                scraping_url: data.scraping_url,
+                status: data.status,
+                created_at: data.created_at,
+                processed_files: data.processed_files
+            }));
+        }
+        window.open(`/knowledge-base/search/${taskId}`, '_blank');
     };
 
     const renderContent = () => {
         if (loading) {
             return (
-                <Box sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-                        <Skeleton variant="circular" width={40} height={40} />
-                        <Skeleton variant="text" width={200} height={40} />
+                <Box sx={{p: 3}}>
+                    <Box sx={{display: 'flex', alignItems: 'center', mb: 3, gap: 2}}>
+                        <Skeleton variant="circular" width={40} height={40}/>
+                        <Skeleton variant="text" width={200} height={40}/>
                     </Box>
 
-                    <Paper sx={{ p: 2, mb: 3 }}>
-                        <Box sx={{ display: 'flex', gap: 4, flexWrap: 'nowrap' }}>
+                    <Paper sx={{p: 2, mb: 3}}>
+                        <Box sx={{display: 'flex', gap: 4, flexWrap: 'nowrap'}}>
                             {[1, 2, 3, 4, 5].map((item) => (
                                 <Box key={item}>
-                                    <Skeleton variant="text" width={100} height={20} />
-                                    <Skeleton variant="text" width={150} height={24} />
+                                    <Skeleton variant="text" width={100} height={20}/>
+                                    <Skeleton variant="text" width={150} height={24}/>
                                 </Box>
                             ))}
                         </Box>
                     </Paper>
 
-                    <Skeleton variant="rectangular" width="100%" height={400} />
+                    <Skeleton variant="rectangular" width="100%" height={400}/>
                 </Box>
             );
         }
@@ -118,7 +133,7 @@ const ViewKnowledgeBasePage = () => {
                             gap: 2,
                             justifyContent: 'space-between'
                         }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
                                 <IconButton
                                     onClick={handleBack}
                                     sx={{
@@ -146,7 +161,7 @@ const ViewKnowledgeBasePage = () => {
                                     }
                                 }}
                             >
-                                <CloseIcon />
+                                <CloseIcon/>
                             </IconButton>
                         </Box>
                     </Box>
@@ -164,35 +179,23 @@ const ViewKnowledgeBasePage = () => {
                                 flexWrap: 'nowrap',
                                 alignItems: 'center'
                             }}>
-                                <Box>
-                                    <Typography variant="subtitle2" color="text.secondary">Task ID</Typography>
-                                    <Typography variant="body1" sx={{fontFamily: 'monospace'}}>{data.task_id}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="subtitle2" color="text.secondary">Scraping URL</Typography>
-                                    <Typography variant="body1" sx={{fontFamily: 'monospace'}}>{data.scraping_url}</Typography>
-                                </Box>
+                                <TaskDetails
+                                    taskId={data.task_id}
+                                    scrapingUrl={data.scraping_url}
+                                    status={data.status}
+                                    createdAt={data.created_at}
+                                    processedFiles={data.processed_files}
+                                />
 
-                                <Box>
-                                    <Typography variant="subtitle2" color="text.secondary">Status</Typography>
-                                    <Chip
-                                        label={data.status}
-                                        color={data.status === 'completed' ? 'success' : 'warning'}
+                                <Box sx={{display: 'flex', gap: 2}}>
+                                    <Button
+                                        variant="contained"
                                         size="small"
-                                        sx={{textTransform: 'capitalize', mt: 0.5}}
-                                    />
-                                </Box>
-
-                                <Box>
-                                    <Typography variant="subtitle2" color="text.secondary">Created At</Typography>
-                                    <Typography variant="body1">{new Date(data.created_at).toLocaleString()}</Typography>
-                                </Box>
-
-                                <Box>
-                                    <Typography variant="subtitle2" color="text.secondary">Files</Typography>
-                                    <Typography variant="body1">
-                                        {data.processed_files}
-                                    </Typography>
+                                        startIcon={<SearchIcon/>}
+                                        onClick={() => handleSearch(data.task_id)}
+                                    >
+                                        Search
+                                    </Button>
                                 </Box>
                             </Box>
                         </Paper>
@@ -202,6 +205,11 @@ const ViewKnowledgeBasePage = () => {
                         {data.webpage_graph && (
                             <WebpageNetwork data={data.webpage_graph}/>
                         )}
+                    </Box>
+                    <Box sx={{
+                        marginTop: "20px",
+                    }}>
+                        {data.clustering_data && <ClusterBrowser clusterData={data.clustering_data}/>}
                     </Box>
                 </Box>
             </Fade>

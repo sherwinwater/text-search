@@ -23,9 +23,8 @@ import {
     Label,
     Article
 } from '@mui/icons-material';
-import clusterData from './cluster_structure.json';
 
-const ClusterBrowser = () => {
+const ClusterBrowser = ({clusterData}) => {
     const [selectedCluster, setSelectedCluster] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const theme = useTheme();
@@ -81,13 +80,11 @@ const ClusterBrowser = () => {
                             elevation={selectedCluster === clusterId ? 8 : 1}
                             sx={{
                                 cursor: 'pointer',
-                                transition: 'all 0.3s',
                                 '&:hover': {
-                                    transform: 'translateY(-4px)',
                                     boxShadow: theme.shadows[4]
                                 },
                                 border: selectedCluster === clusterId ?
-                                    `2px solid ${theme.palette.primary.main}` : 'none'
+                                    `1px solid ${theme.palette.primary.main}` : '1px solid transparent',
                             }}
                             onClick={() => setSelectedCluster(clusterId === selectedCluster ? null : clusterId)}
                         >
@@ -131,7 +128,7 @@ const ClusterBrowser = () => {
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
                     <List>
-                        {filteredData[selectedCluster].documents.map((doc) => (
+                        {filteredData[selectedCluster]?.documents.map((doc) => (
                             <ListItem
                                 key={doc.index}
                                 sx={{

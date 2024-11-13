@@ -1,11 +1,11 @@
 // App.js
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
-import KnowledgeBase from "./components/KnowledgeBase";
-import BuildIndex from "./components/BuildIndex";
-import ViewKnowledgeBasePage from "./components/ViewKnowledgeBasePage";
-import SearchPage from "./components/SearchPage";
+import Layout from './layout/Layout';
+import KnowledgeBase from "./pages/KnowledgeBase";
+import BuildIndex from "./pages/BuildIndex";
+import ViewKnowledgeBasePage from "./pages/ViewKnowledgeBasePage";
+import SearchPage from "./pages/SearchPage";
 
 function App() {
     return (

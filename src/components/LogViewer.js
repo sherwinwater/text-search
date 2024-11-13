@@ -86,7 +86,7 @@ const StyledLinearProgress = styled(LinearProgress)({
 });
 
 
-const LogViewer = ({taskId, onQueuedLogsChange}) => {
+const LogViewer = ({taskId}) => {
     const [displayedLogs, setDisplayedLogs] = useState([]);
     const [queuedLogs, setQueuedLogs] = useState([]);
     const [isConnected, setIsConnected] = useState(false);
@@ -96,8 +96,6 @@ const LogViewer = ({taskId, onQueuedLogsChange}) => {
     useEffect(() => {
         if (queuedLogs.length > 0) {
             // Notify parent component whenever queuedLogs changes
-            onQueuedLogsChange?.(queuedLogs);
-
             const timer = setTimeout(() => {
                 const nextLog = queuedLogs[0];
                 setDisplayedLogs(prev => [...prev, nextLog]);
@@ -106,7 +104,7 @@ const LogViewer = ({taskId, onQueuedLogsChange}) => {
 
             return () => clearTimeout(timer);
         }
-    }, [queuedLogs, displayedLogs, onQueuedLogsChange]);
+    }, [queuedLogs, displayedLogs]);
 
     useEffect(() => {
         const socket = io(config.SEARCH_ENGINE_API_URL, {
@@ -132,9 +130,13 @@ const LogViewer = ({taskId, onQueuedLogsChange}) => {
         });
 
         socket.on("log_message", (logEntry) => {
-            if (logEntry.message.toLowerCase().includes('health check')) {
+            const excludedPhrases = ["connected", "joined room", "health check"];
+            const lowercaseMessage = logEntry.message.toLowerCase();
+
+            if (excludedPhrases.some(phrase => lowercaseMessage.includes(phrase))) {
                 return;
             }
+
             setQueuedLogs(prev => [...prev, logEntry]);
         });
 
@@ -179,7 +181,7 @@ const LogViewer = ({taskId, onQueuedLogsChange}) => {
             <LogContainer elevation={2}>
                 <HeaderBox>
                     <HeaderContent>
-                        <Typography variant="h6" component="h2">
+                        <Typography variant="body1" component="h2">
                             Live Logs
                         </Typography>
                         <StatusBox>

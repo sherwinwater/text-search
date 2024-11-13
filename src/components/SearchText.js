@@ -89,12 +89,10 @@ const SearchText = ({ defaultTaskId }) => {
   const handleClearSearch = () => {
     setData([]);
     setSearchQuery("");
-    setSearchIndexId("");
     setError(null);
     // Clear all search-related localStorage items
     localStorage.removeItem("searchResults");
     localStorage.removeItem("searchQuery");
-    localStorage.removeItem("searchIndexId");
     localStorage.removeItem("searchError");
   };
 
@@ -119,15 +117,15 @@ const SearchText = ({ defaultTaskId }) => {
         sx={{ marginBottom: 3 }}
         alignItems="center"
       >
-        <TextField
-          fullWidth
-          label="Enter your text index id"
-          variant="outlined"
-          value={searchIndexId}
-          onChange={(e) => setSearchIndexId(e.target.value)}
-          onKeyPress={handleKeyPress}
-          sx={{ maxWidth: 400 }}
-        />
+        {/*<TextField*/}
+        {/*  fullWidth*/}
+        {/*  label="Enter your text index id"*/}
+        {/*  variant="outlined"*/}
+        {/*  value={searchIndexId}*/}
+        {/*  onChange={(e) => setSearchIndexId(e.target.value)}*/}
+        {/*  onKeyPress={handleKeyPress}*/}
+        {/*  sx={{ maxWidth: 400 }}*/}
+        {/*/>*/}
         <TextField
           fullWidth
           label="Enter your search query"
@@ -135,7 +133,7 @@ const SearchText = ({ defaultTaskId }) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyPress={handleKeyPress}
-          sx={{ maxWidth: 900 }}
+          sx={{ maxWidth: 1100 }}
         />
         <Button
           variant="contained"
@@ -152,7 +150,7 @@ const SearchText = ({ defaultTaskId }) => {
                 onClick={handleClearSearch}
                 size="small"
             >
-              Clear Search
+              Clear
             </Button>
         )}
       </Stack>
