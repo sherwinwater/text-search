@@ -45,7 +45,9 @@ const KnowledgeBaseList = () => {
     };
 
     const handleView = (taskId) => {
-        window.open(`/knowledge-base/view/${taskId}`, '_blank');
+        // Create full URL for the new tab
+        const url = `/knowledge-base/view/${taskId}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
     };
 
     const handleSearch = (taskId) => {

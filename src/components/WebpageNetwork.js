@@ -13,6 +13,8 @@ import {
 } from '@mui/material';
 
 const WebpageNetwork = ({ data }) => {
+    const [showEdges, setShowEdges] = useState(true); // Add this new state
+
     const networkContainer = useRef(null);
     const networkInstance = useRef(null);
     const [isStabilized, setIsStabilized] = useState(false);
@@ -31,93 +33,45 @@ const WebpageNetwork = ({ data }) => {
         damping: 0.09,
     });
 
-    // Memoized physics presets
+    // Modified physics presets with more distinct differences
     const presets = useMemo(() => ({
         spread: {
-            gravitationalConstant: -3000,
-            centralGravity: 0.1,
-            springLength: 300,
-            springConstant: 0.02,
+            gravitationalConstant: -15000,  // Much stronger repulsion
+            centralGravity: 0.01,          // Very weak center pull
+            springLength: 600,             // Much longer edges
+            springConstant: 0.005,         // Much weaker springs
+            damping: 0.15,                 // Increased damping for stability
+            avoidOverlap: 1,              // Maximum node repulsion
         },
         compact: {
-            gravitationalConstant: -1000,
-            centralGravity: 0.8,
-            springLength: 100,
-            springConstant: 0.08,
+            gravitationalConstant: -2000,   // Moderate repulsion
+            centralGravity: 0.5,           // Moderate center pull
+            springLength: 200,             // Moderate edge length
+            springConstant: 0.02,          // Moderate spring force
+            damping: 0.09,
+            avoidOverlap: 0.5,            // Moderate node repulsion
         },
         default: {
-            gravitationalConstant: -2000,
-            centralGravity: 0.3,
-            springLength: 200,
-            springConstant: 0.04,
+            gravitationalConstant: -8000,   // Strong repulsion
+            centralGravity: 0.1,           // Weak center pull
+            springLength: 400,             // Longer edges
+            springConstant: 0.01,          // Weak springs
+            damping: 0.12,
+            avoidOverlap: 0.8,            // Strong node repulsion
         }
     }), []);
 
-    // Memoized network options with optimized physics settings
-    const networkOptions = useMemo(() => ({
-        nodes: {
-            shape: "dot",
-            font: {
-                size: 10,
-                face: "Arial",
-                color: "#333333",
-            },
-            borderWidth: 1,
-            shadow: true,
-            scaling: {
-                label: {
-                    enabled: true,
-                    min: 8,
-                    max: 20
-                }
-            }
-        },
-        edges: {
-            smooth: {
-                type: "continuous",
-                roundness: 0.5,
-            },
-            length: 200,
-        },
-        physics: {
-            enabled: true,
-            stabilization: {
-                enabled: true,
-                iterations: 1000,
-                updateInterval: 50,
-            },
-            barnesHut: {
-                ...physicsOptions,
-                theta: 0.5, // Optimize performance with slight accuracy trade-off
-                gravitationalConstant: physicsOptions.gravitationalConstant,
-                centralGravity: physicsOptions.centralGravity,
-                springLength: physicsOptions.springLength,
-                springConstant: physicsOptions.springConstant,
-                damping: physicsOptions.damping,
-            },
-        },
-        interaction: {
-            hover: true,
-            tooltipDelay: 200,
-            hideEdgesOnDrag: true,
-            hideEdgesOnZoom: true,
-            zoomView: true,
-            dragView: true,
-            multiselect: true,
-            hoverConnectedEdges: true,
-        }
-    }), [physicsOptions]);
-
-    // Memoized node color calculation
+    // Modified node color calculation with smaller base size
     const calculateNodeColors = useCallback((nodes, edges) => {
         return nodes.map(node => {
             const normalizedRank = node.final_rank || 0;
-            const baseSize = 4;
+            const baseSize = 2; // Reduced from 4 to 2
             const sizeMultiplier = Math.log(
-                (node.metadata?.content_length || 0) / 1000 +
+                (node.metadata?.content_length || 0) / 2000 + // Increased division factor
                 (node.metadata?.outbound_links || 0) + 1
             );
-            const nodeSize = baseSize * (0.1 + sizeMultiplier);
+            // Cap the maximum size
+            const nodeSize = Math.min(baseSize * (0.1 + sizeMultiplier), 8);
             const blueComponent = Math.min(255, Math.round(200 * (1 - normalizedRank)));
             const nodeColor = `rgb(${blueComponent}, ${blueComponent}, 255)`;
 
@@ -159,25 +113,121 @@ const WebpageNetwork = ({ data }) => {
             }));
     }, []);
 
-    // Optimized update physics function
+    // Modified network options with smaller default node size
+    const networkOptions = useMemo(() => ({
+        nodes: {
+            shape: "dot",
+            size: 3,
+            font: {
+                size: 8,
+                face: "Arial",
+                color: "#333333",
+            },
+            borderWidth: 1,
+            shadow: true,
+            scaling: {
+                label: {
+                    enabled: true,
+                    min: 6,
+                    max: 14
+                }
+            }
+        },
+        edges: {
+            smooth: {
+                type: "continuous",
+                roundness: 0.5,
+                forceDirection: "none"
+            },
+            width: 0.5,
+            length: 400,  // Increased default edge length
+        },
+        physics: {
+            enabled: true,
+            stabilization: {
+                enabled: true,
+                iterations: 2000,          // Increased iterations
+                updateInterval: 50,
+            },
+            barnesHut: {
+                ...physicsOptions,
+                theta: 0.5,
+                gravitationalConstant: physicsOptions.gravitationalConstant,
+                centralGravity: physicsOptions.centralGravity,
+                springLength: physicsOptions.springLength,
+                springConstant: physicsOptions.springConstant,
+                damping: physicsOptions.damping,
+                avoidOverlap: physicsOptions.avoidOverlap,
+            },
+            minVelocity: 0.75,            // Reduced minimum velocity
+            maxVelocity: 30,              // Increased maximum velocity
+            solver: 'barnesHut',
+            timestep: 0.5,                // Reduced timestep for more precise movement
+            adaptiveTimestep: true
+        },
+        interaction: {
+            hover: true,
+            tooltipDelay: 200,
+            hideEdgesOnDrag: true,
+            hideEdgesOnZoom: true,
+            zoomView: true,
+            dragView: true,
+            multiselect: true,
+            hoverConnectedEdges: true,
+        }
+    }), [physicsOptions]);
+    // Modified update physics function with immediate stabilization
     const updatePhysics = useCallback((newOptions) => {
         if (networkInstance.current) {
+            setIsStabilized(false);
             networkInstance.current.setOptions({
                 physics: {
+                    enabled: true,
                     barnesHut: {
                         ...physicsOptions,
                         ...newOptions,
+                        avoidOverlap: newOptions.avoidOverlap || physicsOptions.avoidOverlap,
                     },
+                    minVelocity: 0.75,
+                    maxVelocity: 30,
+                    solver: 'barnesHut',
+                    timestep: 0.5,
+                    adaptiveTimestep: true
                 },
             });
             setPhysicsOptions(prev => ({ ...prev, ...newOptions }));
+            networkInstance.current.stabilize(100);
         }
     }, [physicsOptions]);
 
     // Optimized preset application
     const applyPreset = useCallback((preset) => {
-        updatePhysics(presets[preset] || presets.default);
+        if (networkInstance.current) {
+            const presetOptions = presets[preset] || presets.default;
+            updatePhysics(presetOptions);
+
+            // First stabilize with physics
+            networkInstance.current.setOptions({ physics: { enabled: true } });
+
+            // Then do a longer stabilization
+            setTimeout(() => {
+                networkInstance.current?.stabilize(500);
+            }, 100);
+        }
     }, [presets, updatePhysics]);
+
+    const toggleEdges = useCallback(() => {
+        if (networkInstance.current) {
+            const edgesDataSet = networkInstance.current.body.data.edges;
+            const allEdges = edgesDataSet.get();
+            const updatedEdges = allEdges.map(edge => ({
+                ...edge,
+                hidden: showEdges
+            }));
+            edgesDataSet.update(updatedEdges);
+            setShowEdges(!showEdges);
+        }
+    }, [showEdges]);
 
     useEffect(() => {
         if (!data?.nodes || !data?.links || !networkContainer.current) return;
@@ -282,7 +332,6 @@ const WebpageNetwork = ({ data }) => {
 
     return (
         <Container maxWidth={false} sx={{ position: 'relative', height: '85vh', pt: 2, pb: 2, pl: 0, pr: 0 }} disableGutters>
-            {/* Rest of the JSX remains the same */}
             {/* Control Panel */}
             <Paper elevation={3} sx={{
                 position: 'absolute',
@@ -334,6 +383,13 @@ const WebpageNetwork = ({ data }) => {
                             onClick={() => applyPreset("default")}
                         >
                             Default
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="warning"
+                            onClick={toggleEdges}
+                        >
+                            {showEdges ? 'Hide Edges' : 'Show Edges'}
                         </Button>
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
