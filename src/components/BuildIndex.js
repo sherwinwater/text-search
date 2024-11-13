@@ -10,6 +10,7 @@ import {
 import BuildIcon from "@mui/icons-material/Build";
 import LogViewer from "./LogViewer";
 import { config } from '../config/config';
+import ClusterBrowser from "./clustering";
 
 const BuildIndex = () => {
   const [indexName, setIndexName] = useState(() => {
@@ -175,6 +176,7 @@ const BuildIndex = () => {
         </Box>
       )}
       <LogViewer taskId={indexName}/>
+      <ClusterBrowser />
     </Paper>
   );
 };

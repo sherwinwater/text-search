@@ -1,0 +1,27 @@
+version: "3.12"
+
+services:
+  backend:
+    build:
+      context: ./search-engine
+      dockerfile: Dockerfile
+    container_name: search-engine-backend
+    ports:
+      - "5009:5009"
+    environment:
+      - FLASK_APP=api/app.py
+      - FLASK_ENV=production
+    command: gunicorn --bind 0.0.0.0:5009 api.app:app
+
+  frontend:
+    build:
+      context: ./text-search
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+        - REACT_APP_SEARCH_ENGINE_API_URL=http://backend:5009 # Build-time argument
+    container_name: search-engine-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
