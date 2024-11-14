@@ -93,6 +93,21 @@ const LogViewer = ({taskId, clearLogs}) => {
     const socketRef = useRef(null);
     const logsEndRef = useRef(null);
 
+    const getLogLevelColor = (level) => {
+        switch (level.toLowerCase()) {
+            case "error":
+                return "#ef4444";
+            case "warning":
+                return "#eab308";
+            case "info":
+                return "#3b82f6";
+            case "debug":
+                return "#6b7280";
+            default:
+                return "#374151";
+        }
+    };
+
     useEffect(() => {
         if (clearLogs) {
             setDisplayedLogs([]);
