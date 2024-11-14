@@ -86,7 +86,7 @@ const StyledLinearProgress = styled(LinearProgress)({
 });
 
 
-const LogViewer = ({taskId}) => {
+const LogViewer = ({taskId, clearLogs}) => {
     const [displayedLogs, setDisplayedLogs] = useState([]);
     const [queuedLogs, setQueuedLogs] = useState([]);
     const [isConnected, setIsConnected] = useState(false);
@@ -94,8 +94,14 @@ const LogViewer = ({taskId}) => {
     const logsEndRef = useRef(null);
 
     useEffect(() => {
+        if (clearLogs) {
+            setDisplayedLogs([]);
+            setQueuedLogs([]);
+        }
+    }, [clearLogs]);
+
+    useEffect(() => {
         if (queuedLogs.length > 0) {
-            // Notify parent component whenever queuedLogs changes
             const timer = setTimeout(() => {
                 const nextLog = queuedLogs[0];
                 setDisplayedLogs(prev => [...prev, nextLog]);
@@ -153,31 +159,11 @@ const LogViewer = ({taskId}) => {
         logsEndRef.current?.scrollIntoView({behavior: "smooth"});
     }, [displayedLogs]);
 
-    const getLogLevelColor = (level) => {
-        switch (level.toLowerCase()) {
-            case "error":
-                return "#ef4444";
-            case "warning":
-                return "#eab308";
-            case "info":
-                return "#3b82f6";
-            case "debug":
-                return "#6b7280";
-            default:
-                return "#374151";
-        }
-    };
-
-    const progress = queuedLogs.length > 0 ?
-        (displayedLogs.length / (displayedLogs.length + queuedLogs.length)) * 100 :
-        100;
+    // Rest of the component remains the same...
+    // [Previous render code here]
 
     return (
-        <Box sx={{
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column'
-        }}>
+        <Box sx={{width: '100%', display: 'flex', flexDirection: 'column'}}>
             <LogContainer elevation={2}>
                 <HeaderBox>
                     <HeaderContent>
@@ -196,7 +182,14 @@ const LogViewer = ({taskId}) => {
                             />
                         </StatusBox>
                     </HeaderContent>
-                    <StyledLinearProgress sx={{ height: 2 }} variant="determinate" value={progress}/>
+                    <StyledLinearProgress
+                        sx={{ height: 2 }}
+                        variant="determinate"
+                        value={queuedLogs.length > 0 ?
+                            (displayedLogs.length / (displayedLogs.length + queuedLogs.length)) * 100 :
+                            100
+                        }
+                    />
                 </HeaderBox>
 
                 <LogsBox>

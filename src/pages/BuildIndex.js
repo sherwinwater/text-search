@@ -27,6 +27,7 @@ const BuildIndex = () => {
     const [taskId, setTaskId] = useState(null);
     const [data, setData] = useState({});
     const [retryCount, setRetryCount] = useState(0);
+    const [clearLogs, setClearLogs] = useState(false);
 
     useEffect(() => {
         return handleClearData();
@@ -56,10 +57,9 @@ const BuildIndex = () => {
                     setLoading(false);
                     clearInterval(pollInterval);
                 } else if (response.data.status === "pending") {
-                    setRetryCount(0); // Reset count on valid response
+                    setRetryCount(0);
                 }
             } catch (error) {
-
                 if (retryCount >= MAX_RETRIES) {
                     setError("Task not found after maximum retries");
                     setLoading(false);
@@ -67,20 +67,6 @@ const BuildIndex = () => {
                 } else {
                     setRetryCount(prev => prev + 1);
                 }
-
-                // if (error.response?.status === 404) {
-                //     if (retryCount >= MAX_RETRIES) {
-                //         setError("Task not found after maximum retries");
-                //         setLoading(false);
-                //         clearInterval(pollInterval);
-                //     } else {
-                //         setRetryCount(prev => prev + 1);
-                //     }
-                // } else {
-                //     setError(error.message);
-                //     setLoading(false);
-                //     clearInterval(pollInterval);
-                // }
             }
         };
 
@@ -95,7 +81,7 @@ const BuildIndex = () => {
                 clearInterval(pollInterval);
             }
         };
-    }, [taskId, loading, retryCount,error]);
+    }, [taskId, loading, retryCount, error]);
 
     const handleView = (taskId) => {
         const viewUrl = `/knowledge-base/view/${taskId}`;
@@ -118,6 +104,7 @@ const BuildIndex = () => {
     const handleBuilding = async () => {
         if (!url.trim()) return;
 
+        setClearLogs(true);  // Signal LogViewer to clear logs
         setLoading(true);
         setError(null);
         setRetryCount(0);
@@ -132,6 +119,8 @@ const BuildIndex = () => {
         } catch (error) {
             setError(error.message);
             setLoading(false);
+        } finally {
+            setClearLogs(false);  // Reset the clear logs signal
         }
     };
 
@@ -148,6 +137,8 @@ const BuildIndex = () => {
         setTaskId(null);
         setLoading(false);
         setRetryCount(0);
+        setClearLogs(true);
+        setTimeout(() => setClearLogs(false), 100);
     };
 
     return (
@@ -200,7 +191,6 @@ const BuildIndex = () => {
                 <Box sx={{padding: 2, color: "error.main"}}>Error: {error}</Box>
             )}
 
-            {/* Only show when we have completed data */}
             {!error && !loading && data.status === "completed" && (
                 <Table stickyHeader>
                     <TableHead>
@@ -227,7 +217,7 @@ const BuildIndex = () => {
             )}
 
             <Box sx={{flexGrow: 1}}>
-                <LogViewer taskId={url}/>
+                <LogViewer taskId={url} clearLogs={clearLogs} />
             </Box>
         </Paper>
     );
