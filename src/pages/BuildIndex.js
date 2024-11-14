@@ -30,8 +30,42 @@ const BuildIndex = () => {
     const [clearLogs, setClearLogs] = useState(false);
 
     useEffect(() => {
-        return handleClearData();
+        handleClearData();
+        return () => handleClearData();
     }, []);
+
+    const handleClearData = () => {
+        setData({});
+        setUrl("");
+        setError(null);
+        setTaskId(null);
+        setLoading(false);
+        setRetryCount(0);
+        setClearLogs(true);
+        setTimeout(() => setClearLogs(false), 100);
+    };
+
+    const handleBuilding = async () => {
+        if (!url.trim()) return;
+
+        // Clear all previous data first
+        handleClearData();
+
+        // Start new building process
+        setLoading(true);
+
+        try {
+            const response = await axios.post(
+                `${config.SEARCH_ENGINE_API_URL}/api/build_index_by_url`,
+                {url}
+            );
+            setData(response.data);
+            setTaskId(response.data.task_id);
+        } catch (error) {
+            setError(error.message);
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         let pollInterval;
@@ -101,44 +135,11 @@ const BuildIndex = () => {
         window.open(`/knowledge-base/search/${indexData.task_id}`, '_blank');
     };
 
-    const handleBuilding = async () => {
-        if (!url.trim()) return;
-
-        setClearLogs(true);  // Signal LogViewer to clear logs
-        setLoading(true);
-        setError(null);
-        setRetryCount(0);
-
-        try {
-            const response = await axios.post(
-                `${config.SEARCH_ENGINE_API_URL}/api/build_index_by_url`,
-                {url}
-            );
-            setData(response.data);
-            setTaskId(response.data.task_id);
-        } catch (error) {
-            setError(error.message);
-            setLoading(false);
-        } finally {
-            setClearLogs(false);  // Reset the clear logs signal
-        }
-    };
 
     const handleKeyPress = (event) => {
         if (event.key === "Enter") {
             handleBuilding();
         }
-    };
-
-    const handleClearData = () => {
-        setData({});
-        setUrl("");
-        setError(null);
-        setTaskId(null);
-        setLoading(false);
-        setRetryCount(0);
-        setClearLogs(true);
-        setTimeout(() => setClearLogs(false), 100);
     };
 
     return (
@@ -191,7 +192,7 @@ const BuildIndex = () => {
                 <Box sx={{padding: 2, color: "error.main"}}>Error: {error}</Box>
             )}
 
-            {!error && !loading && data.status === "completed" && (
+            {!error && !loading && data?.status === "completed" && (
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow>
