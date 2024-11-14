@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import { io } from "socket.io-client";
+import React, {useEffect, useState, useRef} from "react";
+import {io} from "socket.io-client";
 import {
     Paper,
     Box,
@@ -7,11 +7,11 @@ import {
     LinearProgress
 } from "@mui/material";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-import { styled } from '@mui/material/styles';
-import { config } from '../config/config';
+import {styled} from '@mui/material/styles';
+import {config} from '../config/config';
 
 // Styled components
-const LogContainer = styled(Paper)(({ theme }) => ({
+const LogContainer = styled(Paper)(({theme}) => ({
     width: '100%',
     maxWidth: '100%',
     height: '20%',
@@ -22,7 +22,7 @@ const LogContainer = styled(Paper)(({ theme }) => ({
     flex: 1,
 }));
 
-const HeaderBox = styled(Box)(({ theme }) => ({
+const HeaderBox = styled(Box)(({theme}) => ({
     padding: theme.spacing(2),
     borderBottom: `1px solid ${theme.palette.divider}`,
     width: '100%', // Ensure header takes full width
@@ -42,7 +42,7 @@ const StatusBox = styled(Box)({
     gap: '16px',
 });
 
-const LogsBox = styled(Box)(({ theme }) => ({
+const LogsBox = styled(Box)(({theme}) => ({
     height: 'calc(100% - 90px)', // Adjust height to fill remaining space after header
     overflow: 'auto',
     backgroundColor: '#f9fafb',
@@ -56,7 +56,7 @@ const LogsBox = styled(Box)(({ theme }) => ({
     flex: 1,
 }));
 
-const LogEntry = styled(Box)(({ theme }) => ({
+const LogEntry = styled(Box)(({theme}) => ({
     paddingTop: theme.spacing(0.5),
     paddingBottom: theme.spacing(0.5),
 }));
@@ -67,7 +67,7 @@ const TimeStamp = styled(Typography)({
     fontSize: '10px', // Ensure consistent font size
 });
 
-const LogLevel = styled(Typography)(({ color }) => ({
+const LogLevel = styled(Typography)(({color}) => ({
     marginLeft: '8px',
     color: color,
     display: 'inline',
@@ -196,7 +196,7 @@ const LogViewer = ({taskId}) => {
                             />
                         </StatusBox>
                     </HeaderContent>
-                    <StyledLinearProgress variant="determinate" value={progress} />
+                    <StyledLinearProgress sx={{ height: 2 }} variant="determinate" value={progress}/>
                 </HeaderBox>
 
                 <LogsBox>
@@ -213,7 +213,7 @@ const LogViewer = ({taskId}) => {
                             </LogMessage>
                         </LogEntry>
                     ))}
-                    <div ref={logsEndRef} />
+                    <div ref={logsEndRef}/>
                 </LogsBox>
             </LogContainer>
         </Box>

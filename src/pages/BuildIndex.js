@@ -5,14 +5,20 @@ import {
     Box,
     TextField,
     Button,
-    Stack, Table, TableHead, TableRow, TableCell, TableBody
+    Stack,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody
 } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import LogViewer from "../components/LogViewer";
 import {config} from "../config/config";
 import TaskRow from "../components/TaskRow";
 
-const POLLING_INTERVAL = 5000; // 5 seconds
+const POLLING_INTERVAL = 5000;
+const MAX_RETRIES = 10;
 
 const BuildIndex = () => {
     const [url, setUrl] = useState("");
@@ -20,92 +26,98 @@ const BuildIndex = () => {
     const [error, setError] = useState(null);
     const [taskId, setTaskId] = useState(null);
     const [data, setData] = useState({});
+    const [retryCount, setRetryCount] = useState(0);
 
-    const handleView = (taskId) => {
-        // Create full URL for the new tab
-        const url = `/knowledge-base/view/${taskId}`;
-        window.open(url, '_blank', 'noopener,noreferrer');
-    };
-
-    const handleSearch = (index_data) => {
-        if (index_data) {
-            localStorage.setItem('knowledgeBaseData', JSON.stringify({
-                task_id: index_data.task_id,
-                scraping_url: index_data.scraping_url,
-                status: index_data.status,
-                created_at: index_data.created_at,
-                processed_files: index_data.processed_files
-            }));
-        }
-        window.open(`/knowledge-base/search/${index_data.task_id}`, '_blank');
-    };
-
-    // Clear localStorage and reset state on component mount
     useEffect(() => {
-        localStorage.removeItem("scrapeUrl");
-        localStorage.removeItem("scrapeData");
-        localStorage.removeItem("scrapeError");
-
-        setUrl("");
-        setData({});
-        setError(null);
-        setTaskId(null);
-        setLoading(false);
+        return handleClearData();
     }, []);
 
-    // Polling effect
     useEffect(() => {
         let pollInterval;
+        let isPollingActive = true;
 
         const checkStatus = async () => {
-            if (!taskId) return;
+            if (!taskId || !isPollingActive) return;
 
             try {
                 const response = await axios.get(
-                    `${config.SEARCH_ENGINE_API_URL}/api/build_text_index_status/${taskId}`
+                    `${config.SEARCH_ENGINE_API_URL}/api/clustering_status/${taskId}`
                 );
-
-                setData(response.data);
+                console.log("Response:", response.data);
+                console.log("Status:", response.data.status,error,loading);
 
                 if (response.data.status === "completed") {
+                    setData(response.data);
                     setLoading(false);
+                    setRetryCount(0);
                     clearInterval(pollInterval);
                 } else if (response.data.status === "failed") {
                     setError("Building process failed");
                     setLoading(false);
                     clearInterval(pollInterval);
+                } else if (response.data.status === "pending") {
+                    setRetryCount(0); // Reset count on valid response
                 }
             } catch (error) {
-                setError(error.message);
-                setLoading(false);
-                clearInterval(pollInterval);
+                if (error.response?.status === 404) {
+                    if (retryCount >= MAX_RETRIES) {
+                        setError("Task not found after maximum retries");
+                        setLoading(false);
+                        clearInterval(pollInterval);
+                    } else {
+                        setRetryCount(prev => prev + 1);
+                    }
+                } else {
+                    setError(error.message);
+                    setLoading(false);
+                    clearInterval(pollInterval);
+                }
             }
         };
 
         if (loading && taskId) {
-            // Start polling
-            checkStatus(); // Initial check
+            checkStatus();
             pollInterval = setInterval(checkStatus, POLLING_INTERVAL);
         }
 
-        // Cleanup function
         return () => {
+            isPollingActive = false;
             if (pollInterval) {
                 clearInterval(pollInterval);
             }
         };
-    }, [taskId, loading, data]);
+    }, [taskId, loading, retryCount,error]);
+
+    const handleView = (taskId) => {
+        const viewUrl = `/knowledge-base/view/${taskId}`;
+        window.open(viewUrl, '_blank', 'noopener,noreferrer');
+    };
+
+    const handleSearch = (indexData) => {
+        if (indexData) {
+            localStorage.setItem('knowledgeBaseData', JSON.stringify({
+                task_id: indexData.task_id,
+                scraping_url: indexData.scraping_url,
+                status: indexData.status,
+                created_at: indexData.created_at,
+                processed_files: indexData.processed_files
+            }));
+        }
+        window.open(`/knowledge-base/search/${indexData.task_id}`, '_blank');
+    };
 
     const handleBuilding = async () => {
         if (!url.trim()) return;
 
         setLoading(true);
         setError(null);
-
-        const apiEndpoint = `${config.SEARCH_ENGINE_API_URL}/api/build_index_by_url`;
+        setRetryCount(0);
 
         try {
-            const response = await axios.post(apiEndpoint, {url});
+            const response = await axios.post(
+                `${config.SEARCH_ENGINE_API_URL}/api/build_index_by_url`,
+                {url}
+            );
             setData(response.data);
             setTaskId(response.data.task_id);
         } catch (error) {
@@ -126,6 +138,7 @@ const BuildIndex = () => {
         setError(null);
         setTaskId(null);
         setLoading(false);
+        setRetryCount(0);
     };
 
     return (
@@ -144,6 +157,7 @@ const BuildIndex = () => {
                     onChange={(e) => setUrl(e.target.value)}
                     onKeyPress={handleKeyPress}
                     sx={{maxWidth: 1100}}
+                    disabled={loading}
                 />
                 <Button
                     variant="contained"
@@ -167,7 +181,9 @@ const BuildIndex = () => {
 
             {loading && (
                 <Box sx={{padding: 2, textAlign: "center"}}>
-                    Building in progress... This may take time.
+                    {retryCount > 0
+                        ? `Initializing... (Attempt ${retryCount}/${MAX_RETRIES})`
+                        : "Building in progress... This may take time."}
                 </Box>
             )}
 
@@ -175,7 +191,8 @@ const BuildIndex = () => {
                 <Box sx={{padding: 2, color: "error.main"}}>Error: {error}</Box>
             )}
 
-            {!error && !loading && Object.keys(data).length > 0 && (
+            {/* Only show when we have completed data */}
+            {!error && !loading && data.status === "completed" && (
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow>
@@ -189,9 +206,13 @@ const BuildIndex = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        <TaskRow key={data.task_id} item={data} index={0} handleView={handleView}
-                                 handleSearch={handleSearch}/>
-
+                        <TaskRow
+                            key={data.task_id}
+                            item={data}
+                            index={0}
+                            handleView={handleView}
+                            handleSearch={handleSearch}
+                        />
                     </TableBody>
                 </Table>
             )}
@@ -199,7 +220,6 @@ const BuildIndex = () => {
             <Box sx={{flexGrow: 1}}>
                 <LogViewer taskId={url}/>
             </Box>
-
         </Paper>
     );
 };

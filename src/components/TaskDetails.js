@@ -39,7 +39,15 @@ const TaskDetails = ({taskId, scrapingUrl, status, createdAt, processedFiles}) =
             <Box>
                 <Typography variant="subtitle2" color="text.secondary">Created At</Typography>
                 <Typography variant="body1">
-                    {createdAt}
+                    {new Date(createdAt).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    }).replace(',', '')}
                 </Typography>
             </Box>
             <Box>
