@@ -59,19 +59,28 @@ const BuildIndex = () => {
                     setRetryCount(0); // Reset count on valid response
                 }
             } catch (error) {
-                if (error.response?.status === 404) {
-                    if (retryCount >= MAX_RETRIES) {
-                        setError("Task not found after maximum retries");
-                        setLoading(false);
-                        clearInterval(pollInterval);
-                    } else {
-                        setRetryCount(prev => prev + 1);
-                    }
-                } else {
-                    setError(error.message);
+
+                if (retryCount >= MAX_RETRIES) {
+                    setError("Task not found after maximum retries");
                     setLoading(false);
                     clearInterval(pollInterval);
+                } else {
+                    setRetryCount(prev => prev + 1);
                 }
+
+                // if (error.response?.status === 404) {
+                //     if (retryCount >= MAX_RETRIES) {
+                //         setError("Task not found after maximum retries");
+                //         setLoading(false);
+                //         clearInterval(pollInterval);
+                //     } else {
+                //         setRetryCount(prev => prev + 1);
+                //     }
+                // } else {
+                //     setError(error.message);
+                //     setLoading(false);
+                //     clearInterval(pollInterval);
+                // }
             }
         };
 
