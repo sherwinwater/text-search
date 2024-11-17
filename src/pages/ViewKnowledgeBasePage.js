@@ -61,7 +61,7 @@ const ViewKnowledgeBasePage = () => {
     }, [taskId]);
 
     const handleClose = () => {
-        window.close();
+        handleBack();
     };
 
     const handleBack = () => {
@@ -73,17 +73,28 @@ const ViewKnowledgeBasePage = () => {
         }
     };
 
-    const handleSearch = (taskId) => {
-        if (data) {
+    const handleSearch = (index_data, event) => {
+        const url = `/knowledge-base/search/${index_data.task_id}`;
+
+        if (index_data) {
             localStorage.setItem('knowledgeBaseData', JSON.stringify({
-                task_id: data.task_id,
-                scraping_url: data.scraping_url,
-                status: data.status,
-                created_at: data.created_at,
-                processed_files: data.processed_files
+                task_id: index_data.task_id,
+                scraping_url: index_data.scraping_url,
+                status: index_data.status,
+                created_at: index_data.created_at,
+                processed_files: index_data.processed_files
             }));
         }
-        window.open(`/knowledge-base/search/${taskId}`, '_blank');
+
+        localStorage.removeItem(config.SEARCH_STORAGE_KEY);
+        console.log("rul---",url)
+
+        if (event.button === 2) { // Right-click
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else { // Left-click
+            console.log("rul",url)
+            navigate(url);
+        }
     };
 
     const renderContent = () => {
@@ -192,7 +203,7 @@ const ViewKnowledgeBasePage = () => {
                                         variant="contained"
                                         size="small"
                                         startIcon={<SearchIcon/>}
-                                        onClick={() => handleSearch(data.task_id)}
+                                        onClick={(event) => handleSearch(data,event)}
                                     >
                                         Search
                                     </Button>

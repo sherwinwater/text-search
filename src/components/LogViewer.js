@@ -25,7 +25,7 @@ const LogContainer = styled(Paper)(({theme}) => ({
 const HeaderBox = styled(Box)(({theme}) => ({
     padding: theme.spacing(2),
     borderBottom: `1px solid ${theme.palette.divider}`,
-    width: '100%', // Ensure header takes full width
+    width: '100%',
 }));
 
 const HeaderContent = styled(Box)({
@@ -33,7 +33,7 @@ const HeaderContent = styled(Box)({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: '8px',
-    width: '100%', // Ensure content takes full width
+    width: '100%',
 });
 
 const StatusBox = styled(Box)({
@@ -43,14 +43,14 @@ const StatusBox = styled(Box)({
 });
 
 const LogsBox = styled(Box)(({theme}) => ({
-    height: 'calc(100% - 90px)', // Adjust height to fill remaining space after header
+    height: 'calc(100% - 90px)',
     overflow: 'auto',
     backgroundColor: '#f9fafb',
     padding: theme.spacing(2),
     margin: theme.spacing(2),
     borderRadius: theme.shape.borderRadius,
     fontFamily: 'monospace',
-    fontSize: '10px',  // Set font size to 10px
+    fontSize: '10px',
     textAlign: 'left',
     width: 'auto',
     flex: 1,
@@ -64,20 +64,20 @@ const LogEntry = styled(Box)(({theme}) => ({
 const TimeStamp = styled(Typography)({
     color: '#6b7280',
     display: 'inline',
-    fontSize: '10px', // Ensure consistent font size
+    fontSize: '10px',
 });
 
 const LogLevel = styled(Typography)(({color}) => ({
     marginLeft: '8px',
     color: color,
     display: 'inline',
-    fontSize: '10px', // Ensure consistent font size
+    fontSize: '10px',
 }));
 
 const LogMessage = styled(Typography)({
     marginLeft: '8px',
     display: 'inline',
-    fontSize: '10px', // Ensure consistent font size
+    fontSize: '10px',
 });
 
 const StyledLinearProgress = styled(LinearProgress)({
@@ -85,11 +85,11 @@ const StyledLinearProgress = styled(LinearProgress)({
     borderRadius: 2,
 });
 
-
 const LogViewer = ({taskId, clearLogs}) => {
     const [displayedLogs, setDisplayedLogs] = useState([]);
     const [queuedLogs, setQueuedLogs] = useState([]);
     const [isConnected, setIsConnected] = useState(false);
+    const [hasReceivedLogs, setHasReceivedLogs] = useState(false);
     const socketRef = useRef(null);
     const logsEndRef = useRef(null);
 
@@ -112,6 +112,7 @@ const LogViewer = ({taskId, clearLogs}) => {
         if (clearLogs) {
             setDisplayedLogs([]);
             setQueuedLogs([]);
+            // Don't reset hasReceivedLogs here to keep UI visible
         }
     }, [clearLogs]);
 
@@ -158,6 +159,7 @@ const LogViewer = ({taskId, clearLogs}) => {
                 return;
             }
 
+            setHasReceivedLogs(true); // Set to true when first log is received
             setQueuedLogs(prev => [...prev, logEntry]);
         });
 
@@ -174,8 +176,10 @@ const LogViewer = ({taskId, clearLogs}) => {
         logsEndRef.current?.scrollIntoView({behavior: "smooth"});
     }, [displayedLogs]);
 
-    // Rest of the component remains the same...
-    // [Previous render code here]
+    // Only show UI if we've received logs at least once
+    if (!hasReceivedLogs) {
+        return null;
+    }
 
     return (
         <Box sx={{width: '100%', display: 'flex', flexDirection: 'column'}}>

@@ -16,10 +16,19 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import LogViewer from "../components/LogViewer";
 import {config} from "../config/config";
 import TaskRow from "../components/TaskRow";
+import {styled} from "@mui/material/styles";
 
 const POLLING_INTERVAL = 5000;
 const MAX_RETRIES = 10;
 
+const BorderlessPaper = styled(Paper)({
+    width: "100%",
+    overflow: "hidden",
+    margin: "8px",
+    padding: "24px",
+    border: "none",
+    boxShadow: "2px 0 1px -1px rgba(0,0,0,0.2), -2px 0 1px -1px rgba(0,0,0,0.2), 0 -2px 1px -1px rgba(0,0,0,0.2)"
+});
 const BuildIndex = () => {
     const [url, setUrl] = useState("");
     const [loading, setLoading] = useState(false);
@@ -36,7 +45,6 @@ const BuildIndex = () => {
 
     const handleClearData = () => {
         setData({});
-        setUrl("");
         setError(null);
         setTaskId(null);
         setLoading(false);
@@ -79,7 +87,7 @@ const BuildIndex = () => {
                     `${config.SEARCH_ENGINE_API_URL}/api/clustering_status/${taskId}`
                 );
                 console.log("Response:", response.data);
-                console.log("Status:", response.data.status,error,loading);
+                console.log("Status:", response.data.status, error, loading);
 
                 if (response.data.status === "completed") {
                     setData(response.data);
@@ -142,8 +150,17 @@ const BuildIndex = () => {
         }
     };
 
+
     return (
-        <Paper sx={{width: "100%", overflow: "hidden", margin: 1, padding: 3}}>
+        <BorderlessPaper sx={{
+            width: "100%", overflow: "hidden", margin: 1, padding: 3,
+            '& .MuiPaper-root': {
+                borderBottom: 'none'
+            },
+            '&.MuiPaper-root': {
+                borderBottom: 'none'
+            }
+        }}>
             <Stack
                 direction="row"
                 spacing={2}
@@ -184,7 +201,7 @@ const BuildIndex = () => {
                 <Box sx={{padding: 2, textAlign: "center"}}>
                     {retryCount > 0
                         ? `Initializing... (Attempt ${retryCount}/${MAX_RETRIES})`
-                        : "Building in progress... This may take time."}
+                        : `Building knowledge base from ${url} ... This may take time.`}
                 </Box>
             )}
 
@@ -198,7 +215,7 @@ const BuildIndex = () => {
                         <TableRow>
                             <TableCell>ID</TableCell>
                             <TableCell>Task ID</TableCell>
-                            <TableCell>Scraping URL</TableCell>
+                            <TableCell>KnowledgeBase URL</TableCell>
                             <TableCell>Files</TableCell>
                             <TableCell>Status</TableCell>
                             <TableCell>Created At</TableCell>
@@ -218,9 +235,9 @@ const BuildIndex = () => {
             )}
 
             <Box sx={{flexGrow: 1}}>
-                <LogViewer taskId={url} clearLogs={clearLogs} />
+                <LogViewer taskId={url} clearLogs={clearLogs}/>
             </Box>
-        </Paper>
+        </BorderlessPaper>
     );
 };
 

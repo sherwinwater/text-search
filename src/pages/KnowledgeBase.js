@@ -1,6 +1,5 @@
-// src/components/KnowledgeBase.js
-import React, {useState, useEffect} from 'react';
-import {Routes, Route} from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom'; // Import useNavigate here
 import axios from 'axios';
 import {
     Table,
@@ -11,9 +10,10 @@ import {
     TableRow,
     Box,
     Typography,
-    CircularProgress
+    CircularProgress,
+    Pagination
 } from '@mui/material';
-import {config} from '../config/config';
+import { config } from '../config/config';
 import ViewKnowledgeBase from './ViewKnowledgeBasePage';
 import TaskRow from "../components/TaskRow";
 
@@ -21,7 +21,9 @@ const KnowledgeBaseList = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    // const navigate = useNavigate();
+    const [page, setPage] = useState(1);
+    const itemsPerPage = 10; // Adjust this value as needed
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchData();
@@ -41,13 +43,18 @@ const KnowledgeBaseList = () => {
         }
     };
 
-    const handleView = (taskId) => {
-        // Create full URL for the new tab
+    const handleView = (taskId, event) => {
         const url = `/knowledge-base/view/${taskId}`;
-        window.open(url, '_blank', 'noopener,noreferrer');
+        if (event.button === 2) { // Right-click
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else { // Left-click
+            navigate(url);
+        }
     };
 
-    const handleSearch = (index_data) => {
+    const handleSearch = (index_data, event) => {
+        const url = `/knowledge-base/search/${index_data.task_id}`;
+
         if (index_data) {
             localStorage.setItem('knowledgeBaseData', JSON.stringify({
                 task_id: index_data.task_id,
@@ -57,13 +64,30 @@ const KnowledgeBaseList = () => {
                 processed_files: index_data.processed_files
             }));
         }
-        window.open(`/knowledge-base/search/${index_data.task_id}`, '_blank');
+
+        localStorage.removeItem(config.SEARCH_STORAGE_KEY);
+
+        if (event.button === 2) { // Right-click
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else { // Left-click
+            navigate(url);
+        }
     };
+
+    const handleContextMenu = (event) => {
+        event.preventDefault();
+    };
+
+    const handlePageChange = (event, value) => {
+        setPage(value);
+    };
+
+    const paginatedData = data.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
     if (loading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                <CircularProgress/>
+                <CircularProgress />
             </Box>
         );
     }
@@ -76,44 +100,48 @@ const KnowledgeBaseList = () => {
         );
     }
 
-    if (data.length === 0) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                <Typography>No knowledge base entries found</Typography>
-            </Box>
-        );
-    }
-
     return (
-        <TableContainer>
-            <Table stickyHeader>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>ID</TableCell>
-                        <TableCell>Task ID</TableCell>
-                        <TableCell>Scraping URL</TableCell>
-                        <TableCell>Files</TableCell>
-                        <TableCell>Status</TableCell>
-                        <TableCell>Created At</TableCell>
-                        <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {data.map((item, index) => (
-                        <TaskRow key={item.task_id} item={item} index={index} handleView={handleView}
-                                 handleSearch={handleSearch}/>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+        <div onContextMenu={handleContextMenu}>
+            <TableContainer sx={{ paddingX: 5, paddingY: 2, height: '740px', overflowY: 'auto' }}>
+                <Table stickyHeader>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Index</TableCell>
+                            <TableCell>Task ID</TableCell>
+                            <TableCell>KnowledgeBase URL</TableCell>
+                            <TableCell>Processed Files</TableCell>
+                            <TableCell>Status</TableCell>
+                            <TableCell>Created At</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {paginatedData.map((item, index) => (
+                            <TaskRow
+                                key={item.task_id}
+                                item={item}
+                                index={index}
+                                handleView={(event) => handleView(item.task_id, event)}
+                                handleSearch={(event) => handleSearch(item, event)}
+                            />
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            <Pagination
+                count={Math.ceil(data.length / itemsPerPage)}
+                page={page}
+                onChange={handlePageChange}
+                sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}
+            />
+        </div>
     );
 };
 
 const KnowledgeBase = () => {
     return (
         <Routes>
-            <Route path="/" element={<KnowledgeBaseList/>}/>
-            <Route path="/view/:taskId" element={<ViewKnowledgeBase/>}/>
+            <Route path="/" element={<KnowledgeBaseList />} />
+            <Route path="/view/:taskId" element={<ViewKnowledgeBase />} />
         </Routes>
     );
 };

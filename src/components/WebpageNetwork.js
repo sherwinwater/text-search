@@ -66,7 +66,7 @@ const WebpageNetwork = ({ data }) => {
     const calculateNodeColors = useCallback((nodes, edges) => {
         return nodes.map(node => {
             const normalizedRank = node.final_rank || 0;
-            const baseSize = 2; // Reduced from 4 to 2
+            const baseSize = 4; // Reduced from 4 to 2
             const sizeMultiplier = Math.log(
                 (node.metadata?.content_length || 0) / 2000 + // Increased division factor
                 (node.metadata?.outbound_links || 0) + 1
@@ -118,9 +118,9 @@ const WebpageNetwork = ({ data }) => {
     const networkOptions = useMemo(() => ({
         nodes: {
             shape: "dot",
-            size: 3,
+            size: 8,
             font: {
-                size: 8,
+                size: 10,
                 face: "Arial",
                 color: "#333333",
             },

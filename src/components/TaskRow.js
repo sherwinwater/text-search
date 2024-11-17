@@ -59,6 +59,7 @@ const TaskRow = ({item, index, handleView, handleSearch}) => {
                         size="small"
                         startIcon={<VisibilityIcon/>}
                         onClick={() => handleView(item.task_id)}
+                        onContextMenu={(event) => handleView(event)}
                     >
                         View
                     </Button>
@@ -67,6 +68,7 @@ const TaskRow = ({item, index, handleView, handleSearch}) => {
                         size="small"
                         startIcon={<SearchIcon/>}
                         onClick={() => handleSearch(item)}
+                        onContextMenu={(event) => handleSearch(event)}
                         disabled={item.status !== 'completed'}
                     >
                         Search
