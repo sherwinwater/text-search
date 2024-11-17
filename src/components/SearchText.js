@@ -11,49 +11,62 @@ import {
   Box,
   TextField,
   Button,
-  Stack
+  Stack,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Typography,
+  Chip,
+  IconButton,
+  Tooltip,
+  Card,
+  CardContent,
+  Alert,
+  Autocomplete,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import DeleteIcon from "@mui/icons-material/Delete";
+import InfoIcon from "@mui/icons-material/Info";
 import { config } from "../config/config";
 
 const SearchText = () => {
-  const [data, setData] = useState(() => {
-    const savedData = localStorage.getItem("searchResults");
-    try {
-      return savedData ? JSON.parse(savedData) : [];
-    } catch (e) {
-      console.error("Error parsing stored search results:", e);
-      return [];
-    }
-  });
-
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const [searchQuery, setSearchQuery] = useState(() => {
-    return localStorage.getItem("searchQuery") || "";
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [availableIndexes, setAvailableIndexes] = useState(() => {
+    const saved = localStorage.getItem("builtIndexes");
+    return saved ? JSON.parse(saved) : [];
   });
 
-  const [searchIndexId, setSearchIndexId] = useState(() => {
-    return localStorage.getItem("searchIndexId") || "";
-  });
+  // Add new index to the available indexes
+  const addIndex = (indexInfo) => {
+    setAvailableIndexes((prev) => {
+      const newIndexes = [
+        ...prev.filter((idx) => idx.name !== indexInfo.name),
+        indexInfo,
+      ];
+      localStorage.setItem("builtIndexes", JSON.stringify(newIndexes));
+      return newIndexes;
+    });
+  };
 
-  // Save to localStorage whenever search parameters change
-  useEffect(() => {
-    localStorage.setItem("searchQuery", searchQuery);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    localStorage.setItem("searchIndexId", searchIndexId);
-  }, [searchIndexId]);
-
-  // Save search results to localStorage
-  useEffect(() => {
-    localStorage.setItem("searchResults", JSON.stringify(data));
-  }, [data]);
+  // Remove index from available indexes
+  const removeIndex = (indexName) => {
+    setAvailableIndexes((prev) => {
+      const newIndexes = prev.filter((idx) => idx.name !== indexName);
+      localStorage.setItem("builtIndexes", JSON.stringify(newIndexes));
+      return newIndexes;
+    });
+    if (selectedIndex?.name === indexName) {
+      setSelectedIndex(null);
+    }
+  };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim() || !selectedIndex) return;
 
     setLoading(true);
     setError(null);
@@ -62,22 +75,19 @@ const SearchText = () => {
     try {
       const response = await axios.get(
         `${config.SEARCH_ENGINE_API_URL}/api/search_text/${encodeURIComponent(
-          searchIndexId
+          selectedIndex.name
         )}?query=${encodeURIComponent(searchQuery)}`
       );
       setData(response.data);
-      // Save to localStorage immediately after successful response
-      localStorage.setItem("searchResults", JSON.stringify(response.data));
     } catch (error) {
       setError(error.message);
-      localStorage.setItem("searchError", error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && selectedIndex) {
       handleSearch();
     }
   };
@@ -85,13 +95,7 @@ const SearchText = () => {
   const handleClearSearch = () => {
     setData([]);
     setSearchQuery("");
-    setSearchIndexId("");
     setError(null);
-    // Clear all search-related localStorage items
-    localStorage.removeItem("searchResults");
-    localStorage.removeItem("searchQuery");
-    localStorage.removeItem("searchIndexId");
-    localStorage.removeItem("searchError");
   };
 
   return (
@@ -100,122 +104,188 @@ const SearchText = () => {
         width: "100%",
         overflow: "hidden",
         margin: 1,
-        padding: 1,
-        display: "flex",
-        flexDirection: "column",
-        height: "calc(100vh - 32px)"
+        padding: 3,
       }}
     >
-      {/* Header and Clear Button */}
+      {/* Index Selection and Search Section */}
+      <Card variant="outlined" sx={{ mb: 3 }}>
+        <CardContent>
+          <Stack spacing={3}>
+            {/* Index Selection */}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Select Search Index
+              </Typography>
+              <Stack spacing={2}>
+                <Autocomplete
+                  value={selectedIndex}
+                  onChange={(event, newValue) => setSelectedIndex(newValue)}
+                  options={availableIndexes}
+                  getOptionLabel={(option) => option.name}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Select an index"
+                      variant="outlined"
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <MenuItem {...props}>
+                      <Stack spacing={1} sx={{ width: "100%" }}>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <Typography variant="body1">{option.name}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(option.timestamp).toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          noWrap
+                        >
+                          {option.url}
+                        </Typography>
+                      </Stack>
+                    </MenuItem>
+                  )}
+                />
+                {selectedIndex && (
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Chip
+                      label={`URL: ${selectedIndex.url}`}
+                      size="small"
+                      onDelete={() => removeIndex(selectedIndex.name)}
+                      deleteIcon={
+                        <Tooltip title="Remove this index">
+                          <DeleteIcon />
+                        </Tooltip>
+                      }
+                    />
+                    <Tooltip
+                      title={`Created: ${new Date(
+                        selectedIndex.timestamp
+                      ).toLocaleString()}`}
+                    >
+                      <InfoIcon fontSize="small" color="action" />
+                    </Tooltip>
+                  </Box>
+                )}
+              </Stack>
+            </Box>
 
-      {/* Search Section */}
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{ marginBottom: 3 }}
-        alignItems="center"
-      >
-        <TextField
-          fullWidth
-          label="Enter your text index id"
-          variant="outlined"
-          value={searchIndexId}
-          onChange={(e) => setSearchIndexId(e.target.value)}
-          onKeyPress={handleKeyPress}
-          sx={{ maxWidth: 400 }}
-        />
-        <TextField
-          fullWidth
-          label="Enter your search query"
-          variant="outlined"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyPress={handleKeyPress}
-          sx={{ maxWidth: 900 }}
-        />
-        <Button
-          variant="contained"
-          onClick={handleSearch}
-          disabled={loading || !searchQuery.trim()}
-          startIcon={<SearchIcon />}
-        >
-          Search
-        </Button>
-        {(data.length > 0 || searchQuery || searchIndexId) && (
-            <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handleClearSearch}
-                size="small"
-            >
-              Clear Search
-            </Button>
-        )}
-      </Stack>
-
-      {/* Loading State */}
-      {loading && (
-        <Box sx={{ padding: 2, textAlign: "center" }}>Loading...</Box>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <Box sx={{ padding: 2, color: "error.main" }}>Error: {error}</Box>
-      )}
-
-      {/* Results Table */}
-      {!loading && !error && data.length > 0 && (
-        <>
-          <TableContainer sx={{ flexGrow: 1, maxHeight: 'none', mb: 4 }}>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Score</TableCell>
-                  <TableCell>Filename</TableCell>
-                  <TableCell>Content</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.map((item) => (
-                  <TableRow
-                    key={item.document_id}
-                    hover
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+            {/* Search Query Input */}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Search Query
+              </Typography>
+              <Stack direction="row" spacing={2} alignItems="flex-start">
+                <TextField
+                  fullWidth
+                  label="Enter your search query"
+                  variant="outlined"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  disabled={!selectedIndex}
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleSearch}
+                  disabled={loading || !searchQuery.trim() || !selectedIndex}
+                  startIcon={<SearchIcon />}
+                >
+                  Search
+                </Button>
+                {(data.length > 0 || searchQuery) && (
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleClearSearch}
+                    size="medium"
                   >
-                    <TableCell>
-                      <Box
-                        sx={{
-                          bgcolor: "primary.main",
-                          color: "white",
-                          borderRadius: 1,
-                          padding: "4px 8px",
-                          display: "inline-block",
-                        }}
-                      >
-                        {typeof item.score === "number"
-                          ? item.score.toFixed(2)
-                          : item.score}
-                      </Box>
-                    </TableCell>
-                    <TableCell>{item.filename}</TableCell>
-                    <TableCell sx={{ maxWidth: 1100 }}>
-                      <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
-                        {item.content.slice(0, 2000)}
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </>
+                    Clear
+                  </Button>
+                )}
+              </Stack>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {/* Status Messages */}
+      {loading && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Searching...
+        </Alert>
       )}
 
-      {/* No Results State */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Error: {error}
+        </Alert>
+      )}
+
+      {/* Results Section */}
+      {!loading && !error && data.length > 0 && (
+        <Card variant="outlined">
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Search Results
+            </Typography>
+            <TableContainer>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell width="100">Score</TableCell>
+                    <TableCell>Filename</TableCell>
+                    <TableCell>Content</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {data.map((item, index) => (
+                    <TableRow
+                      key={index}
+                      hover
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    >
+                      <TableCell>
+                        <Chip
+                          label={
+                            typeof item.score === "number"
+                              ? item.score.toFixed(2)
+                              : item.score
+                          }
+                          color="primary"
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{item.filename}</TableCell>
+                      <TableCell sx={{ maxWidth: 800 }}>
+                        <Box
+                          sx={{
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          {item.content.slice(0, 2000)}
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      )}
+
       {!loading && !error && data.length === 0 && searchQuery && (
-        <Box sx={{ padding: 2, textAlign: "center", color: "text.secondary" }}>
-          No results found for your search.
-        </Box>
+        <Alert severity="info">No results found for your search.</Alert>
       )}
     </Paper>
   );
