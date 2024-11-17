@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from "react";
+import {useNavigate} from 'react-router-dom'; // Import useNavigate here
 import axios from "axios";
 import {
     Paper,
@@ -37,6 +38,7 @@ const BuildIndex = () => {
     const [data, setData] = useState({});
     const [retryCount, setRetryCount] = useState(0);
     const [clearLogs, setClearLogs] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         handleClearData();
@@ -65,7 +67,7 @@ const BuildIndex = () => {
         try {
             const response = await axios.post(
                 `${config.SEARCH_ENGINE_API_URL}/api/build_index_by_url`,
-                {url}
+                {url: url.trim()}
             );
             setData(response.data);
             setTaskId(response.data.task_id);
@@ -125,22 +127,35 @@ const BuildIndex = () => {
         };
     }, [taskId, loading, retryCount, error]);
 
-    const handleView = (taskId) => {
-        const viewUrl = `/knowledge-base/view/${taskId}`;
-        window.open(viewUrl, '_blank', 'noopener,noreferrer');
+    const handleView = (taskId, event) => {
+        const url = `/knowledge-base/view/${taskId}`;
+        if (event.button === 2) { // Right-click
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else { // Left-click
+            navigate(url);
+        }
     };
 
-    const handleSearch = (indexData) => {
-        if (indexData) {
+    const handleSearch = (index_data, event) => {
+        const url = `/knowledge-base/search/${index_data.task_id}`;
+
+        if (index_data) {
             localStorage.setItem('knowledgeBaseData', JSON.stringify({
-                task_id: indexData.task_id,
-                scraping_url: indexData.scraping_url,
-                status: indexData.status,
-                created_at: indexData.created_at,
-                processed_files: indexData.processed_files
+                task_id: index_data.task_id,
+                scraping_url: index_data.scraping_url,
+                status: index_data.status,
+                created_at: index_data.created_at,
+                processed_files: index_data.processed_files
             }));
         }
-        window.open(`/knowledge-base/search/${indexData.task_id}`, '_blank');
+
+        localStorage.removeItem(config.SEARCH_STORAGE_KEY);
+
+        if (event.button === 2) { // Right-click
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else { // Left-click
+            navigate(url);
+        }
     };
 
 
@@ -227,8 +242,8 @@ const BuildIndex = () => {
                             key={data.task_id}
                             item={data}
                             index={0}
-                            handleView={handleView}
-                            handleSearch={handleSearch}
+                            handleView={(event) => handleView(data.task_id, event)}
+                            handleSearch={(event) => handleSearch(data, event)}
                         />
                     </TableBody>
                 </Table>
