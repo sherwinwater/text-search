@@ -130,6 +130,33 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
         }
     };
 
+    const highlightText = (text, query) => {
+        if (!query) return text;
+
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const terms = escapedQuery.split(/\s+/).filter((term) => term.length > 0);
+        const pattern = new RegExp(`(${terms.join("|")})`, "gi");
+        const parts = text.split(pattern);
+
+        return parts.map((part, i) => {
+        const isMatch = terms.some(
+            (term) => part.toLowerCase() === term.toLowerCase()
+        );
+
+        return isMatch ? (
+            <mark
+            key={i}
+            style={{
+                backgroundColor: "#ffeb3b",
+            }}
+            >
+            {part}
+            </mark>
+        ) : (
+            part
+        );
+        });
+    };
 
     return (
         <Paper
@@ -235,12 +262,12 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
                                     </TableCell>
                                     <TableCell style={{ width: '100px' }}>
                                         <a href={item.url} target="_blank" rel="noopener noreferrer">
-                                            {item.url}
+                                        {highlightText(item.url, searchQuery)}
                                         </a>
                                     </TableCell>
                                     <TableCell sx={{ maxWidth: 900 }}>
                                         <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
-                                            {item.content.slice(0, 1000)}
+                                        {highlightText(item.content.slice(0, 1000), searchQuery)}
                                         </Box>
                                     </TableCell>
                                 </TableRow>
