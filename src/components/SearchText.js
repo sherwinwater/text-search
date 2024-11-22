@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 import axios from "axios";
 import {
     Table,
@@ -12,12 +12,14 @@ import {
     TextField,
     Button,
     Stack,
-    Typography
+    Typography, useTheme
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { config } from "../config/config";
+import {config} from "../config/config";
 
-const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
+const SearchText = ({defaultTaskId, onSearchUpdate}) => {
+    const theme = useTheme();
+
     // eslint-disable-next-line
     const [searchIndexId, setSearchIndexId] = useState(defaultTaskId || "");
     const [data, setData] = useState(() => {
@@ -26,12 +28,12 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
             const savedData = localStorage.getItem(config.SEARCH_STORAGE_KEY);
             if (savedData) {
                 const parsedData = JSON.parse(savedData);
-                return parsedData.data || { results: [] };
+                return parsedData.data || {results: []};
             }
         } catch (error) {
             console.error('Error reading search data:', error);
         }
-        return { results: [] };
+        return {results: []};
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -76,7 +78,7 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
 
         setLoading(true);
         setError(null);
-        setData({ results: [] });
+        setData({results: []});
         setHasSearched(true);
 
         try {
@@ -114,7 +116,7 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
 
     const handleClearSearch = () => {
         const clearedData = {
-            data: { results: [] },
+            data: {results: []},
             searchQuery: "",
             hasSearched: false
         };
@@ -130,23 +132,41 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
         }
     };
 
+    const renderHighlightedText = (text, query, suggestionText) => {
+        const searchText = suggestionText || query;
+
+        if (!searchText) return text;
+
+        const terms = searchText.split(/\s+/).filter((term) => term.length > 0);
+
+        const regex = new RegExp(`(${terms.join("|")})`, "gi");
+
+        const parts = text.split(regex);
+
+        return parts.map((part, index) =>
+            regex.test(part) ? (
+                <mark key={index} style={{color: "blue", backgroundColor: "transparent"}}>
+                    {part}
+                </mark>
+            ) : (
+                <span key={index}>{part}</span>
+            )
+        );
+    };
+
 
     return (
         <Paper
             sx={{
                 width: "100%",
-                overflow: "hidden",
                 margin: 1,
-                padding: 1,
-                display: "flex",
-                flexDirection: "column",
-                height: "calc(100vh - 32px)"
+                padding: 1
             }}
         >
             <Stack
                 direction="row"
                 spacing={2}
-                sx={{ marginBottom: 3 }}
+                sx={{marginBottom: 3}}
                 alignItems="center"
             >
                 <TextField
@@ -156,13 +176,13 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    sx={{ maxWidth: 1100 }}
+                    sx={{maxWidth: 1100}}
                 />
                 <Button
                     variant="contained"
                     onClick={handleSearch}
                     disabled={loading || !searchQuery.trim()}
-                    startIcon={<SearchIcon />}
+                    startIcon={<SearchIcon/>}
                 >
                     Search
                 </Button>
@@ -179,10 +199,10 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
             </Stack>
 
             {!loading && !error && data.results.length > 0 && (
-                <Box sx={{ paddingX: 2, textAlign: "left" }}>
+                <Box sx={{paddingX: 2, textAlign: "left"}}>
                     <Typography variant="body1">
-                        Showing {data.results.length} results for{' '}
-                        <Box component="span" sx={{ color: "primary.main" }}>
+                        Showing Top{data.results.length} results for{" "}
+                        <Box component="span" sx={{color: "primary.main"}}>
                             {data.suggestion_text || data.original_query}
                         </Box>
                     </Typography>
@@ -190,15 +210,15 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
             )}
 
             {loading && (
-                <Box sx={{ padding: 2, textAlign: "center" }}>Loading...</Box>
+                <Box sx={{padding: 2, textAlign: "center"}}>Loading...</Box>
             )}
 
             {error && (
-                <Box sx={{ padding: 2, color: "error.main" }}>Error: {error}</Box>
+                <Box sx={{padding: 2, color: "error.main"}}>Error: {error}</Box>
             )}
 
             {!loading && !error && data.results.length > 0 && (
-                <TableContainer sx={{ flexGrow: 1, maxHeight: 'none', mb: 4 }}>
+                <TableContainer>
                     <Table stickyHeader>
                         <TableHead>
                             <TableRow>
@@ -209,15 +229,13 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {data.results.map((item, index ) => (
+                            {data.results.map((item, index) => (
                                 <TableRow
                                     key={item.document_id}
                                     hover
-                                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                                    sx={{"&:last-child td, &:last-child th": {border: 0}}}
                                 >
-                                    <TableCell >
-                                        {index+1}
-                                    </TableCell>
+                                    <TableCell>{index + 1}</TableCell>
                                     <TableCell>
                                         <Box
                                             sx={{
@@ -233,14 +251,26 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
                                                 : item.score}
                                         </Box>
                                     </TableCell>
-                                    <TableCell style={{ width: '100px' }}>
-                                        <a href={item.url} target="_blank" rel="noopener noreferrer">
-                                            {item.url}
+                                    <TableCell style={{width: "100px"}}>
+                                        <a
+                                            href={item.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {renderHighlightedText(
+                                                item.url,
+                                                searchQuery,
+                                                data.suggestion_text
+                                            )}
                                         </a>
                                     </TableCell>
-                                    <TableCell sx={{ maxWidth: 900 }}>
+                                    <TableCell sx={{maxWidth: 900}}>
                                         <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
-                                            {item.content.slice(0, 1000)}
+                                            {renderHighlightedText(
+                                                item.content.slice(0, 1000),
+                                                searchQuery,
+                                                data.suggestion_text
+                                            )}
                                         </Box>
                                     </TableCell>
                                 </TableRow>
@@ -251,7 +281,9 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
             )}
 
             {!loading && !error && data.results.length === 0 && hasSearched && (
-                <Box sx={{ padding: 2, textAlign: "center", color: "text.secondary" }}>
+                <Box
+                    sx={{padding: 2, textAlign: "center", color: "text.secondary"}}
+                >
                     No results found for your search.
                 </Box>
             )}
