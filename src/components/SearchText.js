@@ -130,159 +130,156 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
         }
     };
 
-    const highlightText = (text, query) => {
-        if (!query) return text;
+    const renderHighlightedText = (text, query) => {
+      if (!query) return text;
 
-        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const terms = escapedQuery.split(/\s+/).filter((term) => term.length > 0);
-        const pattern = new RegExp(`(${terms.join("|")})`, "gi");
-        const parts = text.split(pattern);
+      const regex = new RegExp(`(${query})`, "gi"); // Match the query (case-insensitive)
+      const parts = text.split(regex); // Split the text into matching and non-matching parts
 
-        return parts.map((part, i) => {
-        const isMatch = terms.some(
-            (term) => part.toLowerCase() === term.toLowerCase()
-        );
-
-        return isMatch ? (
-            <mark
-            key={i}
-            style={{
-                backgroundColor: "#ffeb3b",
-            }}
-            >
+      return parts.map((part, index) =>
+        regex.test(part) ? (
+          <mark key={index} style={{ backgroundColor: "yellow" }}>
             {part}
-            </mark>
+          </mark>
         ) : (
-            part
-        );
-        });
+          <span key={index}>{part}</span>
+        )
+      );
     };
 
+
     return (
-        <Paper
-            sx={{
-                width: "100%",
-                overflow: "hidden",
-                margin: 1,
-                padding: 1,
-                display: "flex",
-                flexDirection: "column",
-                height: "calc(100vh - 32px)"
-            }}
+      <Paper
+        sx={{
+          width: "100%",
+          overflow: "hidden",
+          margin: 1,
+          padding: 1,
+          display: "flex",
+          flexDirection: "column",
+          height: "calc(100vh - 32px)",
+        }}
+      >
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ marginBottom: 3 }}
+          alignItems="center"
         >
-            <Stack
-                direction="row"
-                spacing={2}
-                sx={{ marginBottom: 3 }}
-                alignItems="center"
+          <TextField
+            fullWidth
+            label="Enter your search query"
+            variant="outlined"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+            sx={{ maxWidth: 1100 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+            disabled={loading || !searchQuery.trim()}
+            startIcon={<SearchIcon />}
+          >
+            Search
+          </Button>
+          {(data.results.length > 0 || searchQuery || searchIndexId) && (
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleClearSearch}
+              size="small"
             >
-                <TextField
-                    fullWidth
-                    label="Enter your search query"
-                    variant="outlined"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    sx={{ maxWidth: 1100 }}
-                />
-                <Button
-                    variant="contained"
-                    onClick={handleSearch}
-                    disabled={loading || !searchQuery.trim()}
-                    startIcon={<SearchIcon />}
-                >
-                    Search
-                </Button>
-                {(data.results.length > 0 || searchQuery || searchIndexId) && (
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={handleClearSearch}
-                        size="small"
-                    >
-                        Clear
-                    </Button>
-                )}
-            </Stack>
+              Clear
+            </Button>
+          )}
+        </Stack>
 
-            {!loading && !error && data.results.length > 0 && (
-                <Box sx={{ paddingX: 2, textAlign: "left" }}>
-                    <Typography variant="body1">
-                        Showing {data.results.length} results for{' '}
-                        <Box component="span" sx={{ color: "primary.main" }}>
-                            {data.suggestion_text || data.original_query}
-                        </Box>
-                    </Typography>
-                </Box>
-            )}
+        {!loading && !error && data.results.length > 0 && (
+          <Box sx={{ paddingX: 2, textAlign: "left" }}>
+            <Typography variant="body1">
+              Showing {data.results.length} results for{" "}
+              <Box component="span" sx={{ color: "primary.main" }}>
+                {data.suggestion_text || data.original_query}
+              </Box>
+            </Typography>
+          </Box>
+        )}
 
-            {loading && (
-                <Box sx={{ padding: 2, textAlign: "center" }}>Loading...</Box>
-            )}
+        {loading && (
+          <Box sx={{ padding: 2, textAlign: "center" }}>Loading...</Box>
+        )}
 
-            {error && (
-                <Box sx={{ padding: 2, color: "error.main" }}>Error: {error}</Box>
-            )}
+        {error && (
+          <Box sx={{ padding: 2, color: "error.main" }}>Error: {error}</Box>
+        )}
 
-            {!loading && !error && data.results.length > 0 && (
-                <TableContainer sx={{ flexGrow: 1, maxHeight: 'none', mb: 4 }}>
-                    <Table stickyHeader>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Id</TableCell>
-                                <TableCell>Score</TableCell>
-                                <TableCell>Link</TableCell>
-                                <TableCell>Content</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {data.results.map((item, index ) => (
-                                <TableRow
-                                    key={item.document_id}
-                                    hover
-                                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                                >
-                                    <TableCell >
-                                        {index+1}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Box
-                                            sx={{
-                                                bgcolor: "primary.main",
-                                                color: "white",
-                                                borderRadius: 1,
-                                                padding: "4px 8px",
-                                                display: "inline-block",
-                                            }}
-                                        >
-                                            {typeof item.score === "number"
-                                                ? item.score.toFixed(2)
-                                                : item.score}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell style={{ width: '100px' }}>
-                                        <a href={item.url} target="_blank" rel="noopener noreferrer">
-                                        {highlightText(item.url, searchQuery)}
-                                        </a>
-                                    </TableCell>
-                                    <TableCell sx={{ maxWidth: 900 }}>
-                                        <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
-                                        {highlightText(item.content.slice(0, 1000), searchQuery)}
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
+        {!loading && !error && data.results.length > 0 && (
+          <TableContainer sx={{ flexGrow: 1, maxHeight: "none", mb: 4 }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Id</TableCell>
+                  <TableCell>Score</TableCell>
+                  <TableCell>Link</TableCell>
+                  <TableCell>Content</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.results.map((item, index) => (
+                  <TableRow
+                    key={item.document_id}
+                    hover
+                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  >
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
+                      <Box
+                        sx={{
+                          bgcolor: "primary.main",
+                          color: "white",
+                          borderRadius: 1,
+                          padding: "4px 8px",
+                          display: "inline-block",
+                        }}
+                      >
+                        {typeof item.score === "number"
+                          ? item.score.toFixed(2)
+                          : item.score}
+                      </Box>
+                    </TableCell>
+                    <TableCell style={{ width: "100px" }}>
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {renderHighlightedText(item.url, searchQuery)}
+                      </a>
+                    </TableCell>
+                    <TableCell sx={{ maxWidth: 900 }}>
+                      <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
+                        {renderHighlightedText(
+                          item.content.slice(0, 1000),
+                          searchQuery
+                        )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
 
-            {!loading && !error && data.results.length === 0 && hasSearched && (
-                <Box sx={{ padding: 2, textAlign: "center", color: "text.secondary" }}>
-                    No results found for your search.
-                </Box>
-            )}
-        </Paper>
+        {!loading && !error && data.results.length === 0 && hasSearched && (
+          <Box
+            sx={{ padding: 2, textAlign: "center", color: "text.secondary" }}
+          >
+            No results found for your search.
+          </Box>
+        )}
+      </Paper>
     );
 };
 
