@@ -130,21 +130,26 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
         }
     };
 
-    const renderHighlightedText = (text, query) => {
-      if (!query) return text;
+    const renderHighlightedText = (text, query, suggestionText) => {
+    const searchText = suggestionText || query;
 
-      const regex = new RegExp(`(${query})`, "gi"); // Match the query (case-insensitive)
-      const parts = text.split(regex); // Split the text into matching and non-matching parts
+    if (!searchText) return text;
 
-      return parts.map((part, index) =>
+    const terms = searchText.split(/\s+/).filter((term) => term.length > 0);
+
+    const regex = new RegExp(`(${terms.join("|")})`, "gi");
+
+    const parts = text.split(regex);
+
+    return parts.map((part, index) =>
         regex.test(part) ? (
-          <mark key={index} style={{ backgroundColor: "yellow" }}>
+        <mark key={index} style={{ backgroundColor: "yellow" }}>
             {part}
-          </mark>
+        </mark>
         ) : (
-          <span key={index}>{part}</span>
+        <span key={index}>{part}</span>
         )
-      );
+    );
     };
 
 
@@ -254,14 +259,19 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {renderHighlightedText(item.url, searchQuery)}
+                        {renderHighlightedText(
+                          item.url,
+                          searchQuery,
+                          data.suggestion_text
+                        )}
                       </a>
                     </TableCell>
                     <TableCell sx={{ maxWidth: 900 }}>
                       <Box className="whitespace-pre-wrap break-words max-w-md text-sm">
                         {renderHighlightedText(
                           item.content.slice(0, 1000),
-                          searchQuery
+                          searchQuery,
+                          data.suggestion_text
                         )}
                       </Box>
                     </TableCell>
