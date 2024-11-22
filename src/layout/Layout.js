@@ -31,6 +31,13 @@ const Layout = ({ children }) => {
         "& *": {
             transition: 'none !important',
         },
+        textTransform: 'capitalize',
+        '& .MuiTab-wrapper': {
+            textTransform: 'lowercase',
+            '&::first-letter': {
+                textTransform: 'uppercase'
+            }
+        },
         "&:hover": {
             backgroundColor: "#e3f2fd",
             color: "#1976d2",

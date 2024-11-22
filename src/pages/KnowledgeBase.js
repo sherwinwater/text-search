@@ -106,12 +106,13 @@ const KnowledgeBaseList = () => {
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Index</TableCell>
+                            <TableCell>Id</TableCell>
                             <TableCell>Task ID</TableCell>
-                            <TableCell>KnowledgeBase URL</TableCell>
-                            <TableCell>Processed Files</TableCell>
+                            <TableCell>Knowledge Base</TableCell>
+                            <TableCell>Files</TableCell>
                             <TableCell>Status</TableCell>
                             <TableCell>Created At</TableCell>
+                            <TableCell sx={{textAlign: 'center'}}>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -119,7 +120,7 @@ const KnowledgeBaseList = () => {
                             <TaskRow
                                 key={item.task_id}
                                 item={item}
-                                index={index}
+                                index={(page - 1) * itemsPerPage + index }
                                 handleView={(event) => handleView(item.task_id, event)}
                                 handleSearch={(event) => handleSearch(item, event)}
                             />

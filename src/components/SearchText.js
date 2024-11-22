@@ -202,18 +202,22 @@ const SearchText = ({ defaultTaskId, onSearchUpdate }) => {
                     <Table stickyHeader>
                         <TableHead>
                             <TableRow>
+                                <TableCell>Id</TableCell>
                                 <TableCell>Score</TableCell>
                                 <TableCell>Link</TableCell>
                                 <TableCell>Content</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {data.results.map((item) => (
+                            {data.results.map((item, index ) => (
                                 <TableRow
                                     key={item.document_id}
                                     hover
                                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                                 >
+                                    <TableCell >
+                                        {index+1}
+                                    </TableCell>
                                     <TableCell>
                                         <Box
                                             sx={{
