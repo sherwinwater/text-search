@@ -34,8 +34,8 @@ Our project aims to develop a universal documentation search engine that can enh
 #### 1. Backend Setup
 ```bash
 # Clone the backend repository
-git clone [backend-repo-url]
-cd backend
+git clone git@github.com:sherwinwater/search-engine.git
+cd search-engine
 
 # Create and activate virtual environment
 python -m venv venv
@@ -44,19 +44,18 @@ source venv/bin/activate  # On Windows: .\venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your configurations
-
 # Start server
-python app.py --host 0.0.0.0 --port 5009
+flask --app api/app.py run --port 5009
+
+or
+python -m flask --app api/app.py run --port 5009
 ```
 
 #### 2. Frontend Setup
 ```bash
 # Clone the frontend repository
-git clone [frontend-repo-url]
-cd frontend
+git clone git@github.com:sherwinwater/text-search.git
+cd text-search
 
 # Install dependencies
 npm install
@@ -72,34 +71,45 @@ npm start
 #### 3. Browser Extension Setup
 ```bash
 # Clone the extension repository
-git clone [extension-repo-url]
-cd browser-extension
-
-# Install dependencies
-npm install
-
-# Build extension
-npm run build
-
-# Load in Chrome:
-# 1. Open chrome://extensions/
-# 2. Enable "Developer mode"
-# 3. Click "Load unpacked"
-# 4. Select 'dist' folder
+git clone git@github.com:sherwinwater/text-search-browser-extension.git
+cd text-search-browser-extension
 ```
+Load in Chrome:
+1. Open chrome://extensions/
+2. Enable "Developer mode"
+3. Click "Load unpacked"
+4. Select folder's content
 
 ## Usage Guide
 
 ### Basic Usage Flow
-1. Enter documentation URL
+1. Build knowledge by typing documentation URL and click "Build New Knowledge"
+   ![img_1.png](img_1.png)
 2. Wait for indexing completion
-3. Search through documentation
-4. View results with highlighted relevance
+![img_2.png](img_2.png)
+3. View Knowledge Base
+3.1 View Knowledge Pages
+![img_7.png](img_7.png)
+3.2 View Knowledge Page by clicking "View"
+![img_3.png](img_3.png)
+3.2 View Document Clusters
+![img_4.png](img_4.png)
+3.3 Search Document Clusters by keyword
+![img_5.png](img_5.png)
+4. Search through documentation
+4.1 Clicking "Search" button to open search page
+![img_6.png](img_6.png)
+4.2 Enter search query and view results with highlighted relevance
+![img_8.png](img_8.png)
 
 ### Advanced Features
+- Page graph
+![img_10.png](img_10.png)
 - Content clustering
-- Related document suggestions
-- Real-time search updates
+- Text summarization
+![img_11.png](img_11.png)
+- Fuzzy search
+  ![img_9.png](img_9.png)
 - Browser extension integration
 
 ## API Documentation
@@ -147,7 +157,6 @@ GET /api/clustering_status/{task_id}
 - `log_message`: Task updates
 - `status`: Status changes
 
-[Full API Documentation](#api-documentation)
 
 ## Frontend Features
 
