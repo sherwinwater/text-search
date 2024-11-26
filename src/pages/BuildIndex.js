@@ -222,13 +222,22 @@ const BuildIndex = () => {
                     {loading ? (
                         <Button
                             variant="contained"
-                            color="secondary"
+                            color={hasCancelBuilding ? "secondary" : "error"}
                             onClick={handleCancelBuilding}
                             disabled={hasCancelBuilding}
-                            startIcon={<UploadFileIcon/>}
-                            sx={{whiteSpace: 'nowrap'}}
+                            startIcon={<UploadFileIcon />}
+                            sx={{
+                                whiteSpace: 'nowrap',
+                                opacity: hasCancelBuilding ? 0.7 : 1,
+                                transition: 'all 0.2s',
+                                backgroundColor: hasCancelBuilding ? 'grey.300' : undefined,
+                                '&:disabled': {
+                                    backgroundColor: 'grey.300',
+                                    color: 'grey.500'
+                                }
+                            }}
                         >
-                            Cancel Building
+                            {hasCancelBuilding ? 'Cancelled' : 'Cancel Building'}
                         </Button>
                     ) : (
                         <Button
