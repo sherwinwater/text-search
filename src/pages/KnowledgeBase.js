@@ -43,8 +43,8 @@ const KnowledgeBaseList = () => {
         }
     };
 
-    const handleView = (taskId, event) => {
-        const url = `/knowledge-base/view/${taskId}`;
+    const handleView = (taskId, indexId,event) => {
+        const url = `/knowledge-base/view/${taskId}/${indexId}`;
         if (event.button === 2) { // Right-click
             window.open(url, '_blank', 'noopener,noreferrer');
         } else { // Left-click
@@ -52,8 +52,8 @@ const KnowledgeBaseList = () => {
         }
     };
 
-    const handleSearch = (index_data, event) => {
-        const url = `/knowledge-base/search/${index_data.task_id}`;
+    const handleSearch = (index_data, indexId,event) => {
+        const url = `/knowledge-base/search/${index_data.task_id}/${indexId}`;
 
         if (index_data) {
             localStorage.setItem('knowledgeBaseData', JSON.stringify({
@@ -102,10 +102,10 @@ const KnowledgeBaseList = () => {
 
     return (
         <div onContextMenu={handleContextMenu}>
-            <TableContainer sx={{ paddingX: 5, paddingY: 2, height: '740px', overflowY: 'auto' }}>
+            <TableContainer sx={{ paddingX: 5, paddingY: 2, height: '800px',maxHeight: '1000px', overflowY: 'auto' }}>
                 <Table stickyHeader>
-                    <TableHead>
-                        <TableRow>
+                    <TableHead >
+                        <TableRow >
                             <TableCell>Id</TableCell>
                             <TableCell>Task ID</TableCell>
                             <TableCell>Knowledge Base</TableCell>
@@ -116,15 +116,18 @@ const KnowledgeBaseList = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {paginatedData.map((item, index) => (
-                            <TaskRow
-                                key={item.task_id}
-                                item={item}
-                                index={(page - 1) * itemsPerPage + index }
-                                handleView={(event) => handleView(item.task_id, event)}
-                                handleSearch={(event) => handleSearch(item, event)}
-                            />
-                        ))}
+                        {paginatedData.map((item, index) => {
+                            const calculatedIndex = (page - 1) * itemsPerPage + index;
+                            return (
+                                <TaskRow
+                                    key={item.task_id}
+                                    item={item}
+                                    index={calculatedIndex}
+                                    handleView={(event) => handleView(item.task_id, calculatedIndex, event)}
+                                    handleSearch={(event) => handleSearch(item, calculatedIndex,calculatedIndex, event)}
+                                />
+                            );
+                        })}
                     </TableBody>
                 </Table>
             </TableContainer>

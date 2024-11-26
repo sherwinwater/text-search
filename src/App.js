@@ -19,8 +19,8 @@ function App() {
 
                         {/* Knowledge Base tab and its sub-routes */}
                         <Route path="/knowledge-base" element={<KnowledgeBase />} />
-                        <Route path="/knowledge-base/view/:taskId" element={<ViewKnowledgeBasePage />} />
-                        <Route path="/knowledge-base/search/:taskId" element={<SearchPage />} />
+                        <Route path="/knowledge-base/view/:taskId/:indexId" element={<ViewKnowledgeBasePage />} />
+                        <Route path="/knowledge-base/search/:taskId/:indexId" element={<SearchPage />} />
 
                         {/* Build tab */}
                         <Route path="/build" element={<BuildIndex />} />

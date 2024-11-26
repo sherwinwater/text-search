@@ -9,6 +9,7 @@ import {
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import {styled} from '@mui/material/styles';
 import {config} from '../config/config';
+import {useLocation} from "react-router-dom";
 
 // Styled components
 const LogContainer = styled(Paper)(({theme}) => ({
@@ -92,6 +93,7 @@ const LogViewer = ({taskId, clearLogs}) => {
     const [hasReceivedLogs, setHasReceivedLogs] = useState(false);
     const socketRef = useRef(null);
     const logsEndRef = useRef(null);
+    const location = useLocation();
 
     const getLogLevelColor = (level) => {
         switch (level.toLowerCase()) {
@@ -122,7 +124,7 @@ const LogViewer = ({taskId, clearLogs}) => {
                 const nextLog = queuedLogs[0];
                 setDisplayedLogs(prev => [...prev, nextLog]);
                 setQueuedLogs(prev => prev.slice(1));
-            }, 10);
+            }, 5);
 
             return () => clearTimeout(timer);
         }
@@ -159,7 +161,7 @@ const LogViewer = ({taskId, clearLogs}) => {
                 return;
             }
 
-            setHasReceivedLogs(true); // Set to true when first log is received
+            setHasReceivedLogs(true);
             setQueuedLogs(prev => [...prev, logEntry]);
         });
 
@@ -168,9 +170,18 @@ const LogViewer = ({taskId, clearLogs}) => {
         return () => {
             if (socketRef.current) {
                 socketRef.current.disconnect();
+                socketRef.current = null;
             }
         };
     }, [taskId]);
+
+    useEffect(() => {
+        if (location.pathname !== '/build' && socketRef.current) {
+            socketRef.current.disconnect();
+            socketRef.current = null;
+        }
+    }, [location.pathname]);
+
 
     useEffect(() => {
         logsEndRef.current?.scrollIntoView({behavior: "smooth"});

@@ -8,7 +8,7 @@ const TaskRow = ({item, index, handleView, handleSearch}) => {
         <TableRow key={item.task_id} hover>
             <TableCell>
                 <Typography variant="body2">
-                    {index + 1}
+                    {index}
                 </Typography>
             </TableCell>
             <TableCell>
@@ -17,7 +17,7 @@ const TaskRow = ({item, index, handleView, handleSearch}) => {
                 </Typography>
             </TableCell>
             <TableCell>
-                <Typography variant="body2">
+                <Typography variant="body2" sx={{minWidth: 'auto', maxWidth: '600px', wordWrap: 'break-word'}}>
                     <a
                         href={item.scraping_url}
                         target="_blank"
@@ -54,25 +54,28 @@ const TaskRow = ({item, index, handleView, handleSearch}) => {
             </TableCell>
             <TableCell align="right">
                 <Box sx={{display: 'flex', gap: 1, justifyContent: 'flex-end'}}>
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<VisibilityIcon/>}
-                        onClick={() => handleView(item.task_id)}
-                        onContextMenu={(event) => handleView(event)}
-                    >
-                        View
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<SearchIcon/>}
-                        onClick={() => handleSearch(item)}
-                        onContextMenu={(event) => handleSearch(event)}
-                        disabled={item.status !== 'completed'}
-                    >
-                        Search
-                    </Button>
+                    {handleView && (
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<VisibilityIcon/>}
+                            onClick={() => handleView(item.task_id)}
+                            onContextMenu={(event) => handleView(event)}
+                        >
+                            View
+                        </Button>
+                    )}
+                    {handleSearch && (<Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<SearchIcon/>}
+                            onClick={() => handleSearch(item)}
+                            onContextMenu={(event) => handleSearch(event)}
+                            disabled={item.status !== 'completed'}
+                        >
+                            Search
+                        </Button>
+                    )}
                 </Box>
             </TableCell>
         </TableRow>

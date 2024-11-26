@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import {useNavigate} from 'react-router-dom'; // Import useNavigate here
+import {useNavigate} from 'react-router-dom';
 import axios from "axios";
 import {
     Paper,
@@ -30,6 +30,7 @@ const BorderlessPaper = styled(Paper)({
     border: "none",
     boxShadow: "2px 0 1px -1px rgba(0,0,0,0.2), -2px 0 1px -1px rgba(0,0,0,0.2), 0 -2px 1px -1px rgba(0,0,0,0.2)"
 });
+
 const BuildIndex = () => {
     const [url, setUrl] = useState("");
     const [loading, setLoading] = useState(false);
@@ -38,6 +39,8 @@ const BuildIndex = () => {
     const [data, setData] = useState({});
     const [retryCount, setRetryCount] = useState(0);
     const [clearLogs, setClearLogs] = useState(false);
+    const [hasBuilding, setHasBuilding] = useState(false);
+    const [hasCancelBuilding, setHasCancelBuilding] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -52,17 +55,30 @@ const BuildIndex = () => {
         setLoading(false);
         setRetryCount(0);
         setClearLogs(true);
+        setHasBuilding(false);
+        setHasCancelBuilding(false);
         setTimeout(() => setClearLogs(false), 100);
+    };
+
+    const handleCancelBuilding = async () => {
+        if (!taskId) return;
+
+        try {
+            await axios.post(`${config.SEARCH_ENGINE_API_URL}/api/kill/${taskId}`);
+            setHasCancelBuilding(true);
+            setLoading(false);
+            setError("Building process cancelled");
+        } catch (error) {
+            setError("Failed to cancel building process which is not running.");
+        }
     };
 
     const handleBuilding = async () => {
         if (!url.trim()) return;
 
-        // Clear all previous data first
         handleClearData();
-
-        // Start new building process
         setLoading(true);
+        setHasBuilding(true);
 
         try {
             const response = await axios.post(
@@ -82,17 +98,15 @@ const BuildIndex = () => {
         let isPollingActive = true;
 
         const checkStatus = async () => {
-            if (!taskId || !isPollingActive) return;
+            if (!taskId || !isPollingActive || hasCancelBuilding) return;
 
             try {
                 const response = await axios.get(
                     `${config.SEARCH_ENGINE_API_URL}/api/clustering_status/${taskId}`
                 );
-                console.log("Response:", response.data);
-                console.log("Status:", response.data.status, error, loading);
+                setData(response.data);
 
                 if (response.data.status === "completed") {
-                    setData(response.data);
                     setLoading(false);
                     setRetryCount(0);
                     clearInterval(pollInterval);
@@ -114,7 +128,7 @@ const BuildIndex = () => {
             }
         };
 
-        if (loading && taskId) {
+        if (loading && taskId && !hasCancelBuilding) {
             checkStatus();
             pollInterval = setInterval(checkStatus, POLLING_INTERVAL);
         }
@@ -125,19 +139,19 @@ const BuildIndex = () => {
                 clearInterval(pollInterval);
             }
         };
-    }, [taskId, loading, retryCount, error]);
+    }, [taskId, loading, retryCount, error, hasCancelBuilding]);
 
-    const handleView = (taskId, event) => {
-        const url = `/knowledge-base/view/${taskId}`;
-        if (event.button === 2) { // Right-click
+    const handleView = (taskId, indexId, event) => {
+        const url = `/knowledge-base/view/${taskId}/${indexId}`;
+        if (event.button === 2) {
             window.open(url, '_blank', 'noopener,noreferrer');
-        } else { // Left-click
+        } else {
             navigate(url);
         }
     };
 
-    const handleSearch = (index_data, event) => {
-        const url = `/knowledge-base/search/${index_data.task_id}`;
+    const handleSearch = (index_data, indexId, event) => {
+        const url = `/knowledge-base/search/${index_data.task_id}/${indexId}`;
 
         if (index_data) {
             localStorage.setItem('knowledgeBaseData', JSON.stringify({
@@ -151,20 +165,18 @@ const BuildIndex = () => {
 
         localStorage.removeItem(config.SEARCH_STORAGE_KEY);
 
-        if (event.button === 2) { // Right-click
+        if (event.button === 2) {
             window.open(url, '_blank', 'noopener,noreferrer');
-        } else { // Left-click
+        } else {
             navigate(url);
         }
     };
-
 
     const handleKeyPress = (event) => {
         if (event.key === "Enter") {
             handleBuilding();
         }
     };
-
 
     return (
         <BorderlessPaper sx={{
@@ -176,82 +188,107 @@ const BuildIndex = () => {
                 borderBottom: 'none'
             }
         }}>
-            <Stack
-                direction="row"
-                spacing={2}
-                sx={{marginBottom: 3}}
-                alignItems="center"
+            <Box
+                sx={{
+                    position: 'fixed',
+                    top: 70,
+                    left: 0,
+                    right: 0,
+                    zIndex: 1100,
+                    backgroundColor: 'background.paper',
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    px: 3,
+                    pt: 3,
+                    pb: 2
+                }}
             >
-                <TextField
-                    fullWidth
-                    label="Enter website URL to build knowledge base"
-                    variant="outlined"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    sx={{maxWidth: 1100}}
-                    disabled={loading}
-                />
-                <Button
-                    variant="contained"
-                    onClick={handleBuilding}
-                    disabled={loading || !url.trim()}
-                    startIcon={<UploadFileIcon/>}
+                <Stack
+                    direction="row"
+                    spacing={2}
+                    sx={{marginBottom: 3}}
+                    alignItems="center"
                 >
-                    {loading ? "Building..." : "Start Building"}
-                </Button>
-                {Object.keys(data).length > 0 && (
-                    <Button
+                    <TextField
+                        fullWidth
+                        label="Enter website URL to build knowledge base"
                         variant="outlined"
-                        color="secondary"
-                        onClick={handleClearData}
-                        size="small"
-                    >
-                        Clear
-                    </Button>
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        sx={{maxWidth: 1100}}
+                        disabled={loading}
+                    />
+                    {loading ? (
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={handleCancelBuilding}
+                            disabled={hasCancelBuilding}
+                            startIcon={<UploadFileIcon/>}
+                            sx={{whiteSpace: 'nowrap'}}
+                        >
+                            Cancel Building
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="contained"
+                            onClick={handleBuilding}
+                            disabled={!url.trim()}
+                            startIcon={<UploadFileIcon/>}
+                            sx={{whiteSpace: 'nowrap'}}
+                        >
+                            Start Building
+                        </Button>
+                    )}
+                    {Object.keys(data).length > 0 && (
+                        <Button
+                            variant="outlined"
+                            color="secondary"
+                            onClick={handleClearData}
+                            size="small"
+                        >
+                            Clear
+                        </Button>
+                    )}
+                </Stack>
+
+                {error && (
+                    <Box sx={{padding: 2, color: "error.main"}}>{error}</Box>
                 )}
-            </Stack>
 
-            {loading && (
-                <Box sx={{padding: 2, textAlign: "center"}}>
-                    {retryCount > 0
-                        ? `Initializing... (Attempt ${retryCount}/${MAX_RETRIES})`
-                        : `Building knowledge base from ${url} ... This may take time.`}
-                </Box>
-            )}
-
-            {error && (
-                <Box sx={{padding: 2, color: "error.main"}}>Error: {error}</Box>
-            )}
-
-            {!error && !loading && data?.status === "completed" && (
-                <Table stickyHeader>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>ID</TableCell>
-                            <TableCell>Task ID</TableCell>
-                            <TableCell>KnowledgeBase URL</TableCell>
-                            <TableCell>Files</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Created At</TableCell>
-                            <TableCell align="right">Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        <TaskRow
-                            key={data.task_id}
-                            item={data}
-                            index={0}
-                            handleView={(event) => handleView(data.task_id, event)}
-                            handleSearch={(event) => handleSearch(data, event)}
-                        />
-                    </TableBody>
-                </Table>
-            )}
-
-            <Box sx={{flexGrow: 1}}>
-                <LogViewer taskId={url} clearLogs={clearLogs}/>
+                {!error && hasBuilding && (
+                    <Box sx={{overflowX: 'auto'}}>
+                        <Table stickyHeader>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Id</TableCell>
+                                    <TableCell>Task ID</TableCell>
+                                    <TableCell>Knowledge Base</TableCell>
+                                    <TableCell>Files</TableCell>
+                                    <TableCell>Status</TableCell>
+                                    <TableCell>Created At</TableCell>
+                                    <TableCell align="right">Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                <TaskRow
+                                    key={data.task_id}
+                                    item={data}
+                                    index={0}
+                                    handleView={(event) => handleView(data.task_id, 0, event)}
+                                    handleSearch={(event) => handleSearch(data, 0, event)}
+                                />
+                            </TableBody>
+                        </Table>
+                    </Box>
+                )}
             </Box>
+
+            {hasBuilding && <Box sx={{flexGrow: 1}}>
+                <LogViewer taskId={url} clearLogs={clearLogs}/>
+            </Box>}
+
         </BorderlessPaper>
     );
 };

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState} from "react";
 import axios from "axios";
 import {
     Table,
@@ -12,13 +12,12 @@ import {
     TextField,
     Button,
     Stack,
-    Typography, useTheme
+    Typography
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import {config} from "../config/config";
 
-const SearchText = ({defaultTaskId, onSearchUpdate}) => {
-    const theme = useTheme();
+const SearchText = ({defaultTaskId}) => {
 
     // eslint-disable-next-line
     const [searchIndexId, setSearchIndexId] = useState(defaultTaskId || "");
@@ -63,15 +62,15 @@ const SearchText = ({defaultTaskId, onSearchUpdate}) => {
     });
 
     // Update search state in parent component
-    useEffect(() => {
-        if (onSearchUpdate) {
-            onSearchUpdate({
-                data,
-                searchQuery,
-                hasSearched
-            });
-        }
-    }, [data, searchQuery, hasSearched, onSearchUpdate]);
+    // useEffect(() => {
+    //     if (onSearchUpdate) {
+    //         onSearchUpdate({
+    //             data,
+    //             searchQuery,
+    //             hasSearched
+    //         });
+    //     }
+    // }, [data, searchQuery, hasSearched, onSearchUpdate]);
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) return;
@@ -89,18 +88,40 @@ const SearchText = ({defaultTaskId, onSearchUpdate}) => {
             );
             setData(response.data);
 
+            function limitContentWords(data, wordLimit = 700) {
+                // Deep clone the object to avoid modifying the original
+                const modifiedData = JSON.parse(JSON.stringify(data));
+
+                // Process each result in the array
+                modifiedData.results = modifiedData.results.map(result => {
+                    if (result.content) {
+                        // Split content into words and limit to specified number
+                        const words = result.content.split(/\s+/);
+                        if (words.length > wordLimit) {
+                            result.content = words.slice(0, wordLimit).join(' ') + '...';
+                        }
+                    }
+                    return result;
+                });
+
+                return modifiedData;
+            }
+
             // Save data to localStorage
             const searchData = {
-                data: response.data,
+                data: limitContentWords(response.data),
                 searchQuery,
                 hasSearched: true
             };
+
+            console.log("searchdata", searchData)
+
             localStorage.setItem(config.SEARCH_STORAGE_KEY, JSON.stringify(searchData));
 
             // Update parent component
-            if (onSearchUpdate) {
-                onSearchUpdate(searchData);
-            }
+            // if (onSearchUpdate) {
+            //     onSearchUpdate(searchData);
+            // }
         } catch (error) {
             setError(error.message);
         } finally {
@@ -127,9 +148,9 @@ const SearchText = ({defaultTaskId, onSearchUpdate}) => {
         setHasSearched(clearedData.hasSearched);
 
         localStorage.setItem(config.SEARCH_STORAGE_KEY, JSON.stringify(clearedData));
-        if (onSearchUpdate) {
-            onSearchUpdate(clearedData);
-        }
+        // if (onSearchUpdate) {
+        //     onSearchUpdate(clearedData);
+        // }
     };
 
     const renderHighlightedText = (text, query, suggestionText) => {

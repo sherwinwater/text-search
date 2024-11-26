@@ -6,20 +6,16 @@ import {
     Box,
     Paper,
     Typography,
-    IconButton,
     Fade,
-    Skeleton, Button
+    Skeleton
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CloseIcon from '@mui/icons-material/Close';
 import {config} from '../config/config';
 import WebpageNetwork from "../components/WebpageNetwork";
 import ClusterBrowser from "../components/ClusterBrowser";
-import SearchIcon from "@mui/icons-material/Search";
-import TaskDetails from "../components/TaskDetails";
+import TaskTable from "../components/TaskTable";
 
 const ViewKnowledgeBasePage = () => {
-    const {taskId} = useParams();
+    const {taskId,indexId} = useParams();
     const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -60,21 +56,8 @@ const ViewKnowledgeBasePage = () => {
         fetchData();
     }, [taskId]);
 
-    const handleClose = () => {
-        handleBack();
-    };
-
-    const handleBack = () => {
-        // If opened in new tab, close it, otherwise navigate back
-        if (window.history.length <= 1) {
-            window.close();
-        } else {
-            navigate('/knowledge-base', {replace: true});
-        }
-    };
-
-    const handleSearch = (index_data, event) => {
-        const url = `/knowledge-base/search/${index_data.task_id}`;
+    const handleSearch = (index_data, indexId, event) => {
+        const url = `/knowledge-base/search/${index_data.task_id}/${indexId}`;
 
         if (index_data) {
             localStorage.setItem('knowledgeBaseData', JSON.stringify({
@@ -87,12 +70,12 @@ const ViewKnowledgeBasePage = () => {
         }
 
         localStorage.removeItem(config.SEARCH_STORAGE_KEY);
-        console.log("rul---",url)
+        console.log("rul---", url)
 
         if (event.button === 2) { // Right-click
             window.open(url, '_blank', 'noopener,noreferrer');
         } else { // Left-click
-            console.log("rul",url)
+            console.log("rul", url)
             navigate(url);
         }
     };
@@ -135,82 +118,7 @@ const ViewKnowledgeBasePage = () => {
         return (
             <Fade in={contentVisible}>
                 <Box sx={{p: 0, mt: 0}}>
-                    <Box sx={{mb: 0}}>
-                        <Box sx={{
-                            display: 'flex',
-                            px: 2,
-                            mb: 2,
-                            alignItems: 'center',
-                            gap: 2,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
-                                <IconButton
-                                    onClick={handleBack}
-                                    sx={{
-                                        backgroundColor: '#f0f4f8',
-                                        '&:hover': {
-                                            backgroundColor: '#e3f2fd',
-                                        }
-                                    }}
-                                >
-                                    <ArrowBackIcon/>
-                                </IconButton>
-                                <Typography variant="h6">
-                                    Knowledge Base Details
-                                </Typography>
-                            </Box>
-
-                            {/* Close button */}
-                            <IconButton
-                                onClick={handleClose}
-                                sx={{
-                                    backgroundColor: '#f0f4f8',
-                                    '&:hover': {
-                                        backgroundColor: '#fee2e2',
-                                        color: '#dc2626'
-                                    }
-                                }}
-                            >
-                                <CloseIcon/>
-                            </IconButton>
-                        </Box>
-                    </Box>
-
-                    <Box sx={{display: 'grid', gap: 3}}>
-                        <Paper
-                            sx={{
-                                p: 1,
-                                transition: 'all 0.3s ease'
-                            }}
-                        >
-                            <Box sx={{
-                                display: 'flex',
-                                gap: 4,
-                                flexWrap: 'nowrap',
-                                alignItems: 'center'
-                            }}>
-                                <TaskDetails
-                                    taskId={data.task_id}
-                                    scrapingUrl={data.scraping_url}
-                                    status={data.status}
-                                    createdAt={data.created_at}
-                                    processedFiles={data.processed_files}
-                                />
-
-                                <Box sx={{display: 'flex', gap: 2}}>
-                                    <Button
-                                        variant="contained"
-                                        size="small"
-                                        startIcon={<SearchIcon/>}
-                                        onClick={(event) => handleSearch(data,event)}
-                                    >
-                                        Search
-                                    </Button>
-                                </Box>
-                            </Box>
-                        </Paper>
-                    </Box>
+                    <TaskTable data={data} indexId={indexId} handleSearch={handleSearch}/>
 
                     <Box>
                         {data.webpage_graph && (
