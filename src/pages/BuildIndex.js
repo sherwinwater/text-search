@@ -266,7 +266,7 @@ const BuildIndex = () => {
                     <Box sx={{padding: 2, color: "error.main"}}>{error}</Box>
                 )}
 
-                {!error && hasBuilding && (
+                {!error && hasBuilding && data?.task_id &&(
                     <Box sx={{overflowX: 'auto'}}>
                         <Table stickyHeader>
                             <TableHead>
