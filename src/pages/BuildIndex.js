@@ -31,6 +31,28 @@ const BorderlessPaper = styled(Paper)({
     boxShadow: "2px 0 1px -1px rgba(0,0,0,0.2), -2px 0 1px -1px rgba(0,0,0,0.2), 0 -2px 1px -1px rgba(0,0,0,0.2)"
 });
 
+// const validateUrl = (url) => {
+//     try {
+//         const urlObject = new URL(url);
+//         return urlObject.protocol === 'http:' || urlObject.protocol === 'https:';
+//     } catch (e) {
+//         return false;
+//     }
+// };
+
+function validateUrl(str) {
+    const pattern = new RegExp(
+        '^(https?:\\/\\/)?' + // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$', // fragment locator
+        'i'
+    );
+    return pattern.test(str);
+}
+
 const BuildIndex = () => {
     const [url, setUrl] = useState("");
     const [loading, setLoading] = useState(false);
@@ -75,6 +97,12 @@ const BuildIndex = () => {
 
     const handleBuilding = async () => {
         if (!url.trim()) return;
+
+        // URL validation
+        if (!validateUrl(url.trim())) {
+            setError("Please enter a valid URL (e.g., https://example.com)");
+            return;
+        }
 
         handleClearData();
         setLoading(true);
