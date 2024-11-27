@@ -12,29 +12,45 @@ import {config} from '../config/config';
 import {useLocation} from "react-router-dom";
 
 // Styled components
-const LogContainer = styled(Paper)(({theme}) => ({
+const LogContainer = styled(Paper)(({ theme }) => ({
     width: '100%',
-    maxWidth: '100%',
-    height: '20%',
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: theme.shape.borderRadius,
+    height: 'calc(100vh - 450px)', // Adjust this value based on your layout
     display: 'flex',
     flexDirection: 'column',
-    flex: 1,
+    backgroundColor: theme.palette.background.paper,
+    borderRadius: theme.shape.borderRadius,
 }));
 
-const HeaderBox = styled(Box)(({theme}) => ({
+const ScrollContainer = styled(Box)({
+    flex: 1,
+    overflowY: 'auto',
+    position: 'relative',
+    height: '100%' // Important to contain the scroll
+});
+
+const HeaderBox = styled(Box)(({ theme }) => ({
     padding: theme.spacing(2),
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
+    backgroundColor: theme.palette.background.paper,
     borderBottom: `1px solid ${theme.palette.divider}`,
-    width: '100%',
 }));
+
+const LogsBox = styled(Box)(({ theme }) => ({
+    backgroundColor: '#f9fafb',
+    padding: theme.spacing(2),
+    fontFamily: 'monospace',
+    fontSize: '10px',
+    textAlign: 'left',
+}));
+
 
 const HeaderContent = styled(Box)({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: '8px',
-    width: '100%',
 });
 
 const StatusBox = styled(Box)({
@@ -42,20 +58,6 @@ const StatusBox = styled(Box)({
     alignItems: 'center',
     gap: '16px',
 });
-
-const LogsBox = styled(Box)(({theme}) => ({
-    height: 'calc(100% - 90px)',
-    overflow: 'auto',
-    backgroundColor: '#f9fafb',
-    padding: theme.spacing(2),
-    margin: theme.spacing(2),
-    borderRadius: theme.shape.borderRadius,
-    fontFamily: 'monospace',
-    fontSize: '10px',
-    textAlign: 'left',
-    width: 'auto',
-    flex: 1,
-}));
 
 const LogEntry = styled(Box)(({theme}) => ({
     paddingTop: theme.spacing(0.5),
@@ -192,52 +194,58 @@ const LogViewer = ({taskId, clearLogs}) => {
         return null;
     }
 
-    return (
-        <Box sx={{width: '100%', display: 'flex', flexDirection: 'column'}}>
-            <LogContainer elevation={2}>
-                <HeaderBox>
-                    <HeaderContent>
-                        <Typography variant="body1" component="h2">
-                            Live Logs
-                        </Typography>
-                        <StatusBox>
-                            <Typography variant="body2" color="text.secondary">
-                                Logs: {displayedLogs.length} {queuedLogs.length > 0 && `(${queuedLogs.length} pending)`}
-                            </Typography>
-                            <FiberManualRecordIcon
-                                sx={{
-                                    fontSize: 12,
-                                    color: isConnected ? "#22c55e" : "#ef4444",
-                                }}
-                            />
-                        </StatusBox>
-                    </HeaderContent>
-                    <StyledLinearProgress
-                        sx={{ height: 2 }}
-                        variant="determinate"
-                        value={queuedLogs.length > 0 ?
-                            (displayedLogs.length / (displayedLogs.length + queuedLogs.length)) * 100 :
-                            100
-                        }
-                    />
-                </HeaderBox>
 
-                <LogsBox>
-                    {displayedLogs.map((log, index) => (
-                        <LogEntry key={index}>
-                            <TimeStamp>
-                                {new Date(log.timestamp).toLocaleTimeString()}
-                            </TimeStamp>
-                            <LogLevel color={getLogLevelColor(log.level)}>
-                                [{log.level}]
-                            </LogLevel>
-                            <LogMessage>
-                                {log.message}
-                            </LogMessage>
-                        </LogEntry>
-                    ))}
-                    <div ref={logsEndRef}/>
-                </LogsBox>
+    return (
+        <Box sx={{
+            width: '100%',
+            height: '100%', // Take full height of parent
+            overflow: 'hidden' // Prevent outer scrolling
+        }}>
+            <LogContainer elevation={2}>
+                <ScrollContainer>
+                    <HeaderBox>
+                        <HeaderContent>
+                            <Typography variant="body1" component="h2">
+                                Live Logs
+                            </Typography>
+                            <StatusBox>
+                                <Typography variant="body2" color="text.secondary">
+                                    Logs: {displayedLogs.length} {queuedLogs.length > 0 && `(${queuedLogs.length} pending)`}
+                                </Typography>
+                                <FiberManualRecordIcon
+                                    sx={{
+                                        fontSize: 12,
+                                        color: isConnected ? "#22c55e" : "#ef4444",
+                                    }}
+                                />
+                            </StatusBox>
+                        </HeaderContent>
+                        <StyledLinearProgress
+                            sx={{ height: 2 }}
+                            variant="determinate"
+                            value={queuedLogs.length > 0 ?
+                                (displayedLogs.length / (displayedLogs.length + queuedLogs.length)) * 100 :
+                                100
+                            }
+                        />
+                    </HeaderBox>
+                    <LogsBox>
+                        {displayedLogs.map((log, index) => (
+                            <LogEntry key={index}>
+                                <TimeStamp>
+                                    {new Date(log.timestamp).toLocaleTimeString()}
+                                </TimeStamp>
+                                <LogLevel color={getLogLevelColor(log.level)}>
+                                    [{log.level}]
+                                </LogLevel>
+                                <LogMessage>
+                                    {log.message}
+                                </LogMessage>
+                            </LogEntry>
+                        ))}
+                        <div ref={logsEndRef}/>
+                    </LogsBox>
+                </ScrollContainer>
             </LogContainer>
         </Box>
     );

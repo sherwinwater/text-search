@@ -322,9 +322,13 @@ const BuildIndex = () => {
                 )}
             </Box>
 
-            {hasBuilding && <Box sx={{flexGrow: 1}}>
-                <LogViewer taskId={url} clearLogs={clearLogs}/>
-            </Box>}
+
+            <Box sx={{
+                mt: '230px'
+            }}>
+                {hasBuilding && <LogViewer taskId={url} clearLogs={clearLogs} />}
+            </Box>
+
 
         </BorderlessPaper>
     );

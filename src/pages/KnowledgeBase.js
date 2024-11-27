@@ -100,6 +100,14 @@ const KnowledgeBaseList = () => {
         );
     }
 
+    if (paginatedData.length === 0) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+                <Typography>No data found</Typography>
+            </Box>
+        );
+    }
+
     return (
         <div onContextMenu={handleContextMenu}>
             <TableContainer sx={{ paddingX: 5, paddingY: 2, height: '800px',maxHeight: '1000px', overflowY: 'auto' }}>
