@@ -20,8 +20,7 @@ Many open-source libraries lack effective search functionality in their document
 Our project aims to develop a universal documentation search engine that can enhance any open-source library's documentation searchability. Users will simply provide the documentation URL, and our system will automatically scrape, index, and make the content searchable using BM25 ranking for improved relevance.
 
 ## System Architecture
-![img.png](img.png)
-
+![img_12.png](img_12.png)
 ## Installation
 
 ### Prerequisites
