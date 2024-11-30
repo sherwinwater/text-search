@@ -83,34 +83,69 @@ Load in Chrome:
 
 ### Basic Usage Flow
 1. Build knowledge by typing documentation URL and click "Build New Knowledge"
+   - Enter a valid website URL in the input field
+   - Click "Start Building" or press Enter to begin
+   - Monitor progress through live logs
+   - Option to cancel building or clear results
    ![img_1.png](img_1.png)
+
 2. Wait for indexing completion
-![img_2.png](img_2.png)
+   - View real-time status updates
+   - Monitor processed files count
+   ![img_2.png](img_2.png)
+
 3. View Knowledge Base
-3.1 View Knowledge Pages
-![img_7.png](img_7.png)
-3.2 View Knowledge Page by clicking "View"
-![img_3.png](img_3.png)
-3.2 View Document Clusters
-![img_4.png](img_4.png)
-3.3 Search Document Clusters by keyword
-![img_5.png](img_5.png)
+   3.1 View Knowledge Pages
+   - See list of all indexed knowledge bases
+   - Each entry shows Task ID, URL, file count, status, and creation time
+   ![img_7.png](img_7.png)
+
+   3.2 View Knowledge Page by clicking "View"
+   - Access detailed view of indexed content
+   - Right-click to open in new tab
+   ![img_3.png](img_3.png)
+
+   3.3 View Document Clusters
+   - Browse clustered content
+   - Search through clusters using keywords
+   ![img_4.png](img_4.png)
+
+   3.4 Search Document Clusters by keyword
+   - Filter clusters and documents
+   - View matching results
+   ![img_5.png](img_5.png)
+
 4. Search through documentation
-4.1 Clicking "Search" button to open search page
-![img_6.png](img_6.png)
-4.2 Enter search query and view results with highlighted relevance
-![img_8.png](img_8.png)
+   4.1 Click "Search" button to open search page
+   - Access search interface
+   - Enter search queries
+   ![img_6.png](img_6.png)
+
+   4.2 Enter search query and view results
+   - See relevance scores
+   - View highlighted matches in content
+   ![img_8.png](img_8.png)
 
 ### Advanced Features
 - Page graph
+  - Interactive network visualization
+  - View page relationships
 ![img_10.png](img_10.png)
-- Content clustering
-- Text summarization
-![img_11.png](img_11.png)
-- Fuzzy search
-  ![img_9.png](img_9.png)
-- Browser extension integration
 
+- Content clustering
+  - View related documents together
+  - Browse by clusters
+
+- Text summarization
+  - View content summaries
+![img_11.png](img_11.png)
+
+- Fuzzy search
+  - Handle approximate matches
+![img_9.png](img_9.png)
+
+- Browser extension integration
+   
 ## API Documentation
 
 ### Base URL
