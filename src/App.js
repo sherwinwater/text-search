@@ -6,7 +6,17 @@ import KnowledgeBase from "./pages/KnowledgeBase";
 import BuildIndex from "./pages/BuildIndex";
 import ViewKnowledgeBasePage from "./pages/ViewKnowledgeBasePage";
 import SearchPage from "./pages/SearchPage";
+import AdminPage from "./components/admin/AdminPage";
 
+const ProtectedRoute = ({ children }) => {
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+    if (!isAdmin) {
+        return <Navigate to="/admin" replace />;
+    }
+
+    return children;
+};
 function App() {
     return (
         <div className="App">
@@ -24,6 +34,16 @@ function App() {
 
                         {/* Build tab */}
                         <Route path="/build" element={<BuildIndex />} />
+
+                        <Route path="/admin" element={<AdminPage />} />
+                        <Route
+                            path="/admin/dashboard"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminPage />
+                                </ProtectedRoute>
+                            }
+                        />
                     </Routes>
                 </Layout>
             </BrowserRouter>

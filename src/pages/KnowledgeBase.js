@@ -25,6 +25,9 @@ const KnowledgeBaseList = () => {
     const itemsPerPage = 10; // Adjust this value as needed
     const navigate = useNavigate();
 
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -74,6 +77,35 @@ const KnowledgeBaseList = () => {
         }
     };
 
+    const handleDelete = async (taskId) => {
+        if (!window.confirm('Are you sure you want to delete this knowledge base?')) {
+            return;
+        }
+
+        try {
+            await axios.delete(`${config.SEARCH_ENGINE_API_URL}/api/text_indexes/${taskId}`);
+
+            // Update local data state immediately
+            const newData = data.filter(item => item.task_id !== taskId);
+            setData(newData);
+
+            // Adjust page number if necessary
+            const totalPages = Math.ceil(newData.length / itemsPerPage);
+            if (page > totalPages) {
+                setPage(totalPages || 1);
+            }
+
+            // If current page is empty but there is data, go to previous page
+            const currentPageData = newData.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+            if (currentPageData.length === 0 && newData.length > 0) {
+                setPage(prev => Math.max(1, prev - 1));
+            }
+        } catch (err) {
+            setError('Failed to delete knowledge base');
+            console.error('Error deleting data:', err);
+        }
+    };
+
     const handleContextMenu = (event) => {
         event.preventDefault();
     };
@@ -81,6 +113,15 @@ const KnowledgeBaseList = () => {
     const handlePageChange = (event, value) => {
         setPage(value);
     };
+
+    useEffect(() => {
+        // Reset to first page when data changes significantly
+        const totalPages = Math.ceil(data.length / itemsPerPage);
+        if (page > totalPages) {
+            setPage(1);
+        }
+    }, [data.length, page, itemsPerPage]);
+
 
     const paginatedData = data.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
@@ -133,6 +174,8 @@ const KnowledgeBaseList = () => {
                                     index={calculatedIndex}
                                     handleView={(event) => handleView(item.task_id, calculatedIndex, event)}
                                     handleSearch={(event) => handleSearch(item, calculatedIndex,calculatedIndex, event)}
+                                    handleDelete={handleDelete}
+                                    isAdmin={isAdmin}
                                 />
                             );
                         })}

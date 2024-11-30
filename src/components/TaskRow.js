@@ -2,8 +2,9 @@ import React from 'react';
 import {TableRow, TableCell, Typography, Chip, Button, Box} from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-const TaskRow = ({item, index, handleView, handleSearch}) => {
+const TaskRow = ({ item, index, handleView, handleSearch, handleDelete, isAdmin }) => {
     return (
         <TableRow key={item.task_id} hover>
             <TableCell>
@@ -74,6 +75,17 @@ const TaskRow = ({item, index, handleView, handleSearch}) => {
                             disabled={item.status !== 'completed'}
                         >
                             Search
+                        </Button>
+                    )}
+                    {isAdmin && (
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            onClick={() => handleDelete(item.task_id)}
+                            startIcon={<DeleteIcon />}
+                        >
+                            Delete
                         </Button>
                     )}
                 </Box>

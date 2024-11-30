@@ -1,26 +1,36 @@
-// Layout.jsx
 import React from 'react';
 import { Box, Paper, Tabs, Tab } from '@mui/material';
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import BuildIcon from "@mui/icons-material/Build";
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Layout = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
-    // Simplified tab value calculation
+    // Updated tab value calculation to include admin
     const getCurrentTab = () => {
-        return location.pathname.includes('/build') ? 1 : 0;
+        if (location.pathname.includes('/build')) return 1;
+        if (location.pathname.includes('/admin')) return 2;
+        return 0;
     };
 
-    // Direct navigation on tab change
+    // Updated navigation on tab change
     const handleTabChange = (event, newValue) => {
-        // Force navigation to main routes regardless of current location
-        if (newValue === 0) {
-            navigate('/knowledge-base', { replace: true }); // Using replace to avoid navigation stack issues
-        } else {
-            navigate('/build', { replace: true });
+        switch (newValue) {
+            case 0:
+                navigate('/knowledge-base', { replace: true });
+                break;
+            case 1:
+                navigate('/build', { replace: true });
+                break;
+            case 2:
+                navigate('/admin', { replace: true });
+                break;
+            default:
+                navigate('/knowledge-base', { replace: true });
         }
     };
 
@@ -93,15 +103,32 @@ const Layout = ({ children }) => {
                             icon={<UploadFileIcon />}
                             iconPosition="start"
                             sx={tabStyles}
-                            onClick={() => navigate('/knowledge-base', { replace: true })}
                         />
                         <Tab
                             label="Build New Knowledge"
                             icon={<BuildIcon />}
                             iconPosition="start"
                             sx={tabStyles}
-                            onClick={() => navigate('/build', { replace: true })}
                         />
+                        {isAdmin && (
+                            <Tab
+                                label="Admin"
+                                icon={<AdminPanelSettingsIcon />}
+                                iconPosition="start"
+                                sx={{
+                                    ...tabStyles,
+                                    "&.Mui-selected": {
+                                        backgroundColor: "#ffcdd2",
+                                        color: "#c62828",
+                                    },
+                                    "&:hover": {
+                                        backgroundColor: "#ffebee",
+                                        color: "#d32f2f",
+                                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                                    },
+                                }}
+                            />
+                        )}
                     </Tabs>
                 </Paper>
             </Box>
