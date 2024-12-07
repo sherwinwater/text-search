@@ -87,63 +87,63 @@ Load in Chrome:
    - Click "Start Building" or press Enter to begin
    - Monitor progress through live logs
    - Option to cancel building or clear results
-   ![img_1.png](img_1.png)
-
+![img_13.png](img_13.png)
+   - 
 2. Wait for indexing completion
    - View real-time status updates
    - Monitor processed files count
-   ![img_2.png](img_2.png)
-
+![img_14.png](img_14.png)
+   
 3. View Knowledge Base
    3.1 View Knowledge Pages
    - See list of all indexed knowledge bases
    - Each entry shows Task ID, URL, file count, status, and creation time
-   ![img_7.png](img_7.png)
-
+![img_15.png](img_15.png)
+   
    3.2 View Knowledge Page by clicking "View"
    - Access detailed view of indexed content
    - Right-click to open in new tab
-   ![img_3.png](img_3.png)
-
+![img_16.png](img_16.png)
+   
    3.3 View Document Clusters
    - Browse clustered content
    - Search through clusters using keywords
-   ![img_4.png](img_4.png)
-
+![img_17.png](img_17.png)
+   
    3.4 Search Document Clusters by keyword
    - Filter clusters and documents
    - View matching results
-   ![img_5.png](img_5.png)
-
+![img_18.png](img_18.png)
+   
 4. Search through documentation
    4.1 Click "Search" button to open search page
    - Access search interface
    - Enter search queries
-   ![img_6.png](img_6.png)
-
+![img_19.png](img_19.png)
    4.2 Enter search query and view results
    - See relevance scores
    - View highlighted matches in content
-   ![img_8.png](img_8.png)
+![img_21.png](img_21.png)
 
 ### Advanced Features
 - Page graph
-  - Interactive network visualization
+  - Interactive network visualization(support spread,compact,default graph view)
   - View page relationships
-![img_10.png](img_10.png)
-
+  - Click node to view page rank, content url link, links, content size,etc.
+![img_23.png](img_23.png)
+  
 - Content clustering
   - View related documents together
   - Browse by clusters
-
+![img_24.png](img_24.png)
+  
 - Text summarization
   - View content summaries
-![img_11.png](img_11.png)
-
+![img_25.png](img_25.png)
+  
 - Fuzzy search
   - Handle approximate matches
-![img_9.png](img_9.png)
-
+![img_22.png](img_22.png)
 - Browser extension integration
    
 ## API Documentation
@@ -628,6 +628,7 @@ The `TextSearch` class is implemented using several Python libraries:
 - **React**: Used for building the main web application interface
 - **Material-UI (MUI)**: Provides pre-built components and styling for consistent UI design
 - **Socket.IO Client**: Enables real-time updates and progress monitoring
+- **Page Graph Network**: Visualizes webpage graph structure using vis-network library
 
 #### 1. Real-time Building Knowledge Progress Monitoring
 - WebSocket integration for live task status updates
