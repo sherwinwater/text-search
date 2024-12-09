@@ -21,6 +21,17 @@ Our project aims to develop a universal documentation search engine that can enh
 
 ## System Architecture
 ![img_12.png](img_12.png)
+
+## Application URL and code repos
+Applications:
+- Web application: https://search.shuwen.cloud
+- Chrome browser extension: https://chromewebstore.google.com/detail/text-search/bcdgkbpdkajghkgccekeknalfflfjncd
+
+Code repos:
+- Frontend UI: https://github.com/sherwinwater/text-search
+- Backend Servcie: https://github.com/sherwinwater/search-engine
+- Chrome browser Extension: https://github.com/sherwinwater/text-search-browser-extension
+
 ## Installation
 
 ### Prerequisites
